@@ -72,7 +72,7 @@ public class SecurityConfig {
                                 "/images/**",
                                 "/js/**"
                         ).permitAll()
-                        .requestMatchers("/home", "/tv", "/mobile", "/internet", "/help", "/catalog",
+                        .requestMatchers("/home", "/tv", "/mobile", "/internet", "/help",
                                        "/profile", "/my-tickets", "/my-subscriptions",
                                        "/api/**", "/subscribe", "/cancel-subscription/**").hasRole("USER")
                         .anyRequest().authenticated()
