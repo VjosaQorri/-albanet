@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>AlbaNet - Staff Login</title>
+    <link rel="stylesheet" href="/css/login.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+<div class="login-container">
+    <div class="glass-card">
+        <h1>Staff Login</h1>
+        <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 20px; font-size: 14px;">
+            <i class="fas fa-user-shield"></i> Staff Members Only
+        </p>
+
+        <!-- Error Message -->
+        <div th:if="${param.error}" class="error-message" style="color: #ff6b6b; background: rgba(255, 107, 107, 0.1); padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>Invalid email or password</span>
+        </div>
+
+        <!-- Logout Message -->
+        <div th:if="${param.logout}" class="success-message" style="color: #51cf66; background: rgba(81, 207, 102, 0.1); padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
+            <i class="fas fa-check-circle"></i>
+            <span>You have been logged out successfully</span>
+        </div>
+
+        <form th:action="@{/staff/login}" method="post">
+
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <i class="fas fa-envelope input-icon"></i>
+                    <input type="email" name="email" placeholder="Staff Email" required autofocus>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <i class="fas fa-lock input-icon"></i>
+                    <input type="password" name="password" placeholder="Password" required>
+                </div>
+            </div>
+
+            <div class="options">
+                <label class="remember-me">
+                    <input type="checkbox" name="remember-me">
+                    <span class="checkmark"></span>
+                    Remember me
+                </label>
+            </div>
+
+            <button class="login-btn" type="submit">
+                <i class="fas fa-sign-in-alt"></i> Staff Login
+            </button>
+
+            <div class="register-link" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                <a th:href="@{/login}" class="register-text" style="text-decoration: none;">
+                    <i class="fas fa-arrow-left"></i> Client Login
+                </a>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

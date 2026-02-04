@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title>My Profile - AlbaNet</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/client-nav.css}">
+
+    <style>
+        body {
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .page-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .page-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .profile-container {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .profile-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .profile-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+        }
+
+        .profile-avatar {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .avatar-circle {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 48px;
+            color: white;
+            font-weight: 700;
+        }
+
+        .profile-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .profile-email {
+            color: #718096;
+            font-size: 0.95rem;
+        }
+
+        .profile-stats {
+            display: grid;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .stat-label {
+            color: #718096;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .stat-value {
+            color: #2d3748;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            color: #667eea;
+        }
+
+        .info-grid {
+            display: grid;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .info-label {
+            color: #718096;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            color: #2d3748;
+            font-size: 1.1rem;
+            font-weight: 500;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            padding: 14px 28px;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .coming-soon {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-wifi"></i> AlbaNet
+            </div>
+            <ul class="nav-links">
+                <li><a href="/home"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="/tv"><i class="fas fa-tv"></i> TV</a></li>
+                <li><a href="/mobile"><i class="fas fa-mobile-alt"></i> Mobile</a></li>
+                <li><a href="/internet"><i class="fas fa-wifi"></i> Internet</a></li>
+                <li><a href="/help"><i class="fas fa-question-circle"></i> Help</a></li>
+            </ul>
+            <div class="user-section">
+                <button class="user-button" onclick="toggleDropdown()">
+                    <i class="fas fa-user-circle"></i>
+                    <span th:text="${userName != null ? userName : 'User'}">User</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div id="userDropdown" class="dropdown-content">
+                    <div class="dropdown-header">
+                        <span th:text="${userEmail != null ? userEmail : 'user@example.com'}">user@example.com</span>
+                    </div>
+                    <a href="/profile"><i class="fas fa-user"></i> Profile</a>
+                    <a href="/my-tickets"><i class="fas fa-ticket-alt"></i> My Tickets</a>
+                    <a href="/my-subscriptions"><i class="fas fa-list-alt"></i> My Subscriptions</a>
+                    <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="logout-link">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                    <form id="logout-form" th:action="@{/logout}" method="post" style="display: none;"></form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>👤 My Profile</h1>
+            <p>Manage your account information and settings</p>
+        </div>
+
+        <div class="profile-container">
+            <!-- Sidebar -->
+            <div class="profile-card">
+                <div class="profile-avatar">
+                    <div class="avatar-circle">
+                        <span th:text="${userName != null ? userName.substring(0,1).toUpperCase() : 'U'}">U</span>
+                    </div>
+                    <div class="profile-name" th:text="${userName}">User Name</div>
+                    <div class="profile-email" th:text="${userEmail}">user@example.com</div>
+                </div>
+
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">
+                            <i class="fas fa-list-alt"></i> Active Subscriptions
+                        </span>
+                        <span class="stat-value">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">
+                            <i class="fas fa-ticket-alt"></i> Open Tickets
+                        </span>
+                        <span class="stat-value">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">
+                            <i class="fas fa-calendar-check"></i> Member Since
+                        </span>
+                        <span class="stat-value">2026</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="profile-card">
+                <h2 class="section-title">
+                    <i class="fas fa-user-circle"></i>
+                    Account Information
+                </h2>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label class="info-label">Full Name</label>
+                        <div class="info-value" th:text="${userName}">John Doe</div>
+                    </div>
+
+                    <div class="info-item">
+                        <label class="info-label">Email Address</label>
+                        <div class="info-value" th:text="${userEmail}">user@example.com</div>
+                    </div>
+
+                    <div class="info-item">
+                        <label class="info-label">User ID</label>
+                        <div class="info-value" th:text="${userId}">12345</div>
+                    </div>
+
+                    <div class="info-item">
+                        <label class="info-label">Account Status</label>
+                        <div class="info-value" style="color: #00b894;">
+                            <i class="fas fa-check-circle"></i> Active
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn-primary" onclick="alert('Edit profile feature coming soon!')">
+                        <i class="fas fa-edit"></i> Edit Profile
+                    </button>
+                    <button class="btn-secondary" onclick="alert('Change password feature coming soon!')">
+                        <i class="fas fa-key"></i> Change Password
+                    </button>
+                </div>
+
+                <div class="coming-soon">
+                    <i class="fas fa-tools"></i> Profile editing and password management features are coming soon!
+                </div>
+
+                <hr style="margin: 40px 0; border: none; border-top: 2px solid #e2e8f0;">
+
+                <h2 class="section-title">
+                    <i class="fas fa-bell"></i>
+                    Preferences
+                </h2>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label class="info-label">Email Notifications</label>
+                        <div class="info-value" style="color: #00b894;">
+                            <i class="fas fa-check-circle"></i> Enabled
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <label class="info-label">Language</label>
+                        <div class="info-value">English</div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <a href="/my-subscriptions" class="btn-primary">
+                        <i class="fas fa-list-alt"></i> View My Subscriptions
+                    </a>
+                    <a href="/my-tickets" class="btn-secondary">
+                        <i class="fas fa-ticket-alt"></i> View My Tickets
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Scripts -->
+    <script th:src="@{/js/client-nav.js}"></script>
+</body>
+</html>
+

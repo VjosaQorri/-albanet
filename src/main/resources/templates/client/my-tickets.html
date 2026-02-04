@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Tickets - AlbaNet</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/client-nav.css}">
+
+    <style>
+        body {
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .page-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .page-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .tickets-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .header-actions h2 {
+            color: #2d3748;
+        }
+
+        .btn-create-ticket {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-create-ticket:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #718096;
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            margin-bottom: 20px;
+            color: #cbd5e0;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #2d3748;
+        }
+
+        .tickets-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .ticket-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 24px;
+            border-left: 4px solid #667eea;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .ticket-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .ticket-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .ticket-id {
+            font-size: 0.9rem;
+            color: #718096;
+            font-weight: 600;
+        }
+
+        .ticket-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin: 8px 0;
+        }
+
+        .ticket-meta {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .meta-item i {
+            color: #667eea;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .badge-open {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .badge-in-progress {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .badge-done {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+
+        .badge-escalated {
+            background: #fce4ec;
+            color: #c2185b;
+        }
+
+        .priority-high {
+            color: #e53e3e;
+            font-weight: 600;
+        }
+
+        .priority-medium {
+            color: #f6ad55;
+            font-weight: 600;
+        }
+
+        .priority-low {
+            color: #48bb78;
+            font-weight: 600;
+        }
+
+        .category-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-wifi"></i> AlbaNet
+            </div>
+            <ul class="nav-links">
+                <li><a href="/home"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="/tv"><i class="fas fa-tv"></i> TV</a></li>
+                <li><a href="/mobile"><i class="fas fa-mobile-alt"></i> Mobile</a></li>
+                <li><a href="/internet"><i class="fas fa-wifi"></i> Internet</a></li>
+                <li><a href="/help"><i class="fas fa-question-circle"></i> Help</a></li>
+            </ul>
+            <div class="user-section">
+                <button class="user-button" onclick="toggleDropdown()">
+                    <i class="fas fa-user-circle"></i>
+                    <span th:text="${userName != null ? userName : 'User'}">User</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div id="userDropdown" class="dropdown-content">
+                    <div class="dropdown-header">
+                        <span th:text="${userEmail != null ? userEmail : 'user@example.com'}">user@example.com</span>
+                    </div>
+                    <a href="/profile"><i class="fas fa-user"></i> Profile</a>
+                    <a href="/my-tickets"><i class="fas fa-ticket-alt"></i> My Tickets</a>
+                    <a href="/my-subscriptions"><i class="fas fa-list-alt"></i> My Subscriptions</a>
+                    <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="logout-link">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                    <form id="logout-form" th:action="@{/logout}" method="post" style="display: none;"></form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>🎫 My Support Tickets</h1>
+            <p>Track all your support requests and their status</p>
+        </div>
+
+        <div class="tickets-container">
+            <div class="header-actions">
+                <h2>Your Tickets</h2>
+                <a href="/help" class="btn-create-ticket">
+                    <i class="fas fa-plus"></i> Create New Ticket
+                </a>
+            </div>
+
+            <!-- Empty State -->
+            <div th:if="${tickets.isEmpty()}" class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <h3>No tickets yet</h3>
+                <p>You haven't created any support tickets. Need help? <a href="/help" style="color: #667eea;">Click here</a> to get started!</p>
+            </div>
+
+            <!-- Tickets Grid -->
+            <div th:if="${!tickets.isEmpty()}" class="tickets-grid">
+                <div class="ticket-card" th:each="ticket : ${tickets}">
+                    <div class="ticket-header">
+                        <div>
+                            <div class="ticket-id">#<span th:text="${ticket.id}">123</span></div>
+                            <h3 class="ticket-title" th:text="${ticket.title}">Internet connection issue</h3>
+                        </div>
+                        <span class="badge"
+                              th:classappend="${ticket.status.name() == 'OPEN'} ? 'badge-open' :
+                                             (${ticket.status.name() == 'IN_PROGRESS'} ? 'badge-in-progress' :
+                                             (${ticket.status.name() == 'ESCALATED'} ? 'badge-escalated' : 'badge-done'))"
+                              th:text="${ticket.status.name()}">OPEN</span>
+                    </div>
+
+                    <p th:text="${ticket.description}" style="color: #4a5568; margin-bottom: 15px;">
+                        I'm experiencing frequent disconnections with my internet service...
+                    </p>
+
+                    <div class="ticket-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-tag"></i>
+                            <span class="category-badge" th:text="${ticket.category.name()}">INTERNET</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span th:class="${ticket.priority.name() == 'HIGH'} ? 'priority-high' :
+                                            (${ticket.priority.name() == 'MEDIUM'} ? 'priority-medium' : 'priority-low')"
+                                  th:text="${ticket.priority.name() + ' Priority'}">HIGH Priority</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-users"></i>
+                            <span th:text="${ticket.assignedTeam + ' Team'}">IT1 Team</span>
+                        </div>
+                        <div class="meta-item" th:if="${ticket.assignedTo != null}">
+                            <i class="fas fa-user-check"></i>
+                            <span th:text="${'Assigned to ' + ticket.assignedTo}">Assigned to John Doe</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span th:text="${#temporals.format(ticket.createdAt, 'MMM dd, yyyy HH:mm')}">Feb 03, 2026 10:30</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:src="@{/js/client-nav.js}"></script>
+</body>
+</html>

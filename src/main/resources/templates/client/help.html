@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title>Help & Support - AlbaNet</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/client-nav.css}">
+
+    <style>
+        body {
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .header {
+            text-align: center;
+
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            color: white;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .category-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .category-card i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .category-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .category-card p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .form-section {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        .form-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .back-btn {
+            background: #e0e0e0;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            transition: background 0.3s;
+        }
+
+        .back-btn:hover {
+            background: #d0d0d0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group select,
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.3s;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert.show {
+            display: block;
+            animation: slideDown 0.3s;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .loader {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loader.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .nav-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .nav-link:hover {
+            color: #764ba2;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-wifi"></i> AlbaNet
+            </div>
+            <ul class="nav-links">
+                <li><a href="/home"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="/tv"><i class="fas fa-tv"></i> TV</a></li>
+                <li><a href="/mobile"><i class="fas fa-mobile-alt"></i> Mobile</a></li>
+                <li><a href="/internet"><i class="fas fa-wifi"></i> Internet</a></li>
+                <li><a href="/help" class="active"><i class="fas fa-question-circle"></i> Help</a></li>
+            </ul>
+            <div class="user-section">
+                <button class="user-button" onclick="toggleDropdown()">
+                    <i class="fas fa-user-circle"></i>
+                    <span th:text="${userName != null ? userName : 'User'}">User</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div id="userDropdown" class="dropdown-content">
+                    <div class="dropdown-header">
+                        <span th:text="${userEmail != null ? userEmail : 'user@example.com'}">user@example.com</span>
+                    </div>
+                    <a href="/profile"><i class="fas fa-user"></i> Profile</a>
+                    <a href="/my-tickets"><i class="fas fa-ticket-alt"></i> My Tickets</a>
+                    <a href="/my-subscriptions"><i class="fas fa-list-alt"></i> My Subscriptions</a>
+                    <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="logout-link">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                    <form id="logout-form" th:action="@{/logout}" method="post" style="display: none;"></form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header">
+            <h1>🎫 Need Help?</h1>
+            <p>Select a category to create a support ticket</p>
+        </div>
+
+        <div class="content">
+            <div id="alertSuccess" class="alert success"></div>
+            <div id="alertError" class="alert error"></div>
+
+            <!-- Category Selection -->
+            <div id="categorySection" class="categories">
+                <div class="category-card" onclick="selectCategory('TV')">
+                    <i class="fas fa-tv"></i>
+                    <h3>TV Services</h3>
+                    <p>Issues with channels, signal, or equipment</p>
+                </div>
+
+                <div class="category-card" onclick="selectCategory('MOBILE')">
+                    <i class="fas fa-mobile-alt"></i>
+                    <h3>Mobile Services</h3>
+                    <p>Problems with calls, data, or SIM</p>
+                </div>
+
+                <div class="category-card" onclick="selectCategory('INTERNET')">
+                    <i class="fas fa-wifi"></i>
+                    <h3>Internet Services</h3>
+                    <p>Connection or speed issues</p>
+                </div>
+            </div>
+
+            <!-- Ticket Form -->
+            <div id="formSection" class="form-section">
+                <button class="back-btn" onclick="backToCategories()">
+                    <i class="fas fa-arrow-left"></i> Back to Categories
+                </button>
+
+                <h2 style="margin-bottom: 20px; color: #333;">Create Support Ticket</h2>
+
+                <form id="ticketForm" onsubmit="submitTicket(event)">
+                    <input type="hidden" id="selectedCategory" name="category">
+
+                    <div class="form-group">
+                        <label for="problemType">Problem Type *</label>
+                        <select id="problemType" name="problemType" required>
+                            <option value="">Select a problem...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="subject">Subject *</label>
+                        <input type="text" id="subject" name="subject" placeholder="Brief description of the issue" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Description *</label>
+                        <textarea id="description" name="description" placeholder="Please provide detailed information about your issue..." required></textarea>
+                    </div>
+
+                    <button type="submit" class="submit-btn" id="submitBtn">
+                        <i class="fas fa-paper-plane"></i> Submit Ticket
+                    </button>
+                </form>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loader" class="loader">
+                <div class="spinner"></div>
+                <p>Creating your ticket...</p>
+            </div>
+
+            <a href="/home" class="nav-link">
+                <i class="fas fa-home"></i> Back to Home
+            </a>
+        </div>
+    </div>
+
+    <script>
+        let selectedCategory = '';
+
+        function selectCategory(category) {
+            selectedCategory = category;
+            document.getElementById('selectedCategory').value = category;
+
+            // Hide categories, show form
+            document.getElementById('categorySection').style.display = 'none';
+            document.getElementById('formSection').classList.add('active');
+
+            // Load problem types
+            loadProblemTypes(category);
+        }
+
+        function backToCategories() {
+            document.getElementById('formSection').classList.remove('active');
+            document.getElementById('categorySection').style.display = 'grid';
+            document.getElementById('ticketForm').reset();
+        }
+
+        function loadProblemTypes(category) {
+            const select = document.getElementById('problemType');
+            select.innerHTML = '<option value="">Loading...</option>';
+            select.disabled = true;
+
+            fetch(`/api/problem-types?category=${category}`)
+                .then(response => response.json())
+                .then(data => {
+                    select.innerHTML = '<option value="">Select a problem...</option>';
+                    data.forEach(problem => {
+                        const option = document.createElement('option');
+                        option.value = problem.value;
+                        option.textContent = problem.label;
+                        select.appendChild(option);
+                    });
+                    select.disabled = false;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('error', 'Failed to load problem types. Please refresh the page.');
+                    select.disabled = false;
+                });
+        }
+
+        function submitTicket(event) {
+            event.preventDefault();
+
+            const formData = {
+                category: document.getElementById('selectedCategory').value,
+                problemType: document.getElementById('problemType').value,
+                subject: document.getElementById('subject').value,
+                description: document.getElementById('description').value
+            };
+
+            // Show loader
+            document.getElementById('formSection').style.display = 'none';
+            document.getElementById('loader').classList.add('show');
+
+            // Get CSRF token from meta tags
+            const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+            // Prepare headers with CSRF token
+            const headers = {
+                'Content-Type': 'application/json',
+            };
+
+            // Add CSRF token to headers
+            if (csrfToken && csrfHeader) {
+                headers[csrfHeader] = csrfToken;
+            }
+
+            fetch('/api/create-ticket', {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('loader').classList.remove('show');
+
+                if (data.success) {
+                    showAlert('success', `✅ ${data.message} Ticket #${data.ticketId} - ${data.assignedTeam} Team (${data.priority} Priority)`);
+                    document.getElementById('ticketForm').reset();
+
+                    // Redirect after 3 seconds
+                    setTimeout(() => {
+                        window.location.href = '/my-tickets';
+                    }, 3000);
+                } else {
+                    document.getElementById('formSection').style.display = 'block';
+                    showAlert('error', data.error || 'Failed to create ticket. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('loader').classList.remove('show');
+                document.getElementById('formSection').style.display = 'block';
+                showAlert('error', 'An error occurred. Please try again.');
+            });
+        }
+
+        function showAlert(type, message) {
+            const alertId = type === 'success' ? 'alertSuccess' : 'alertError';
+            const alertElement = document.getElementById(alertId);
+
+            // Hide all alerts
+            document.querySelectorAll('.alert').forEach(alert => alert.classList.remove('show'));
+
+            // Show alert
+            alertElement.textContent = message;
+            alertElement.classList.add('show');
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+
+    <script th:src="@{/js/client-nav.js}"></script>
+</body>
+</html>

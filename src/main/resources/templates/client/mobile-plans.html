@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title>Mobile Plans - AlbaNet</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/client-nav.css}">
+
+    <style>
+        body {
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+
+        .container { max-width: 1400px; margin: 0 auto; padding: 40px 30px; }
+        .hero { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 60px 30px; text-align: center; border-radius: 20px; margin-bottom: 50px; }
+        .hero h1 { font-size: 42px; margin-bottom: 15px; }
+        .hero p { font-size: 18px; opacity: 0.9; }
+
+        .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
+        .plan-card { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08); transition: transform 0.3s, box-shadow 0.3s; position: relative; }
+        .plan-card:hover { transform: translateY(-10px); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15); }
+        .plan-card.featured { border: 3px solid #667eea; position: relative; }
+        .plan-card.featured::before { content: 'POPULAR'; position: absolute; top: 20px; right: -30px; background: #667eea; color: white; padding: 5px 40px; transform: rotate(45deg); font-weight: bold; font-size: 12px; z-index: 1; }
+
+        .plan-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; }
+        .plan-header h3 { font-size: 24px; margin-bottom: 10px; }
+        .plan-header .price { font-size: 36px; font-weight: bold; margin: 15px 0; }
+        .plan-header .price span { font-size: 16px; font-weight: normal; }
+        .plan-header .duration { font-size: 14px; opacity: 0.9; font-weight: bold; }
+        .plan-header .description { font-size: 13px; opacity: 0.85; margin-top: 8px; }
+
+        .plan-body { padding: 30px; }
+        .features-list { list-style: none; margin-bottom: 20px; }
+        .features-list li { padding: 10px 0; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #f0f0f0; }
+        .features-list li:last-child { border-bottom: none; }
+        .features-list li i { color: #00b894; font-size: 16px; flex-shrink: 0; }
+
+        .subscribe-btn { width: 100%; padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: transform 0.3s; }
+        .subscribe-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); }
+
+        /* Subscribed Badge */
+        .subscribed-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: #00b894;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 12px;
+            z-index: 2;
+            box-shadow: 0 2px 10px rgba(0, 184, 148, 0.3);
+        }
+        .subscribed-badge i { margin-right: 5px; }
+
+        .notification { position: fixed; top: 20px; right: 20px; padding: 15px 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); z-index: 10000; display: flex; align-items: center; gap: 10px; font-weight: 600; animation: slideInRight 0.3s; min-width: 300px; }
+        @keyframes slideInRight { from { transform: translateX(400px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .notification.success { background: #4caf50; color: white; }
+        .notification.error { background: #f44336; color: white; }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-wifi"></i> AlbaNet
+            </div>
+            <ul class="nav-links">
+                <li><a href="/home"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="/tv"><i class="fas fa-tv"></i> TV</a></li>
+                <li><a href="/mobile" class="active"><i class="fas fa-mobile-alt"></i> Mobile</a></li>
+                <li><a href="/internet"><i class="fas fa-wifi"></i> Internet</a></li>
+                <li><a href="/help"><i class="fas fa-question-circle"></i> Help</a></li>
+            </ul>
+            <div class="user-section">
+                <button class="user-button" onclick="toggleDropdown()">
+                    <i class="fas fa-user-circle"></i>
+                    <span th:text="${userName != null ? userName : 'User'}">User</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div id="userDropdown" class="dropdown-content">
+                    <div class="dropdown-header">
+                        <span th:text="${userEmail != null ? userEmail : 'user@example.com'}">user@example.com</span>
+                    </div>
+                    <a href="/profile"><i class="fas fa-user"></i> Profile</a>
+                    <a href="/my-tickets"><i class="fas fa-ticket-alt"></i> My Tickets</a>
+                    <a href="/my-subscriptions"><i class="fas fa-list-alt"></i> My Subscriptions</a>
+                    <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="logout-link">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                    <form id="logout-form" th:action="@{/logout}" method="post" style="display: none;"></form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="hero">
+            <h1><i class="fas fa-mobile-alt"></i> Mobile Plans</h1>
+            <p>Stay connected with our flexible mobile packages</p>
+        </div>
+
+        <div class="plans-grid">
+            <div th:each="plan, iterStat : ${plans}" class="plan-card" th:classappend="${iterStat.index == 2} ? 'featured'">
+                <!-- Activated Badge - Show on pending plan if exists, otherwise on active plan -->
+                <span th:if="${pendingSubscription != null && pendingSubscription.planCode.name() == plan.code.name()}" class="subscribed-badge">
+                    <i class="fas fa-check-circle"></i> Activated
+                </span>
+                <span th:if="${pendingSubscription == null && activeSubscription != null && activeSubscription.planCode.name() == plan.code.name()}" class="subscribed-badge">
+                    <i class="fas fa-check-circle"></i> Activated
+                </span>
+
+                <div class="plan-header">
+                    <h3 th:text="${plan.name}">Pako M</h3>
+                    <div class="duration" th:text="${plan.durationDays + ' Days'}">30 Days</div>
+                    <div class="price">€<span th:text="${plan.monthlyPrice}">9.99</span></div>
+                    <div class="description" th:text="${plan.description}">For regular users</div>
+                </div>
+                <div class="plan-body">
+                    <ul class="features-list">
+                        <li th:each="feature : ${plan.features.split(',')}">
+                            <i class="fas fa-check-circle"></i>
+                            <span th:text="${feature}">Feature</span>
+                        </li>
+                    </ul>
+                    <button class="subscribe-btn"
+                            th:attr="data-plan=${plan.code},data-plan-name=${plan.name},data-duration=${plan.durationDays},data-has-subscription=${activeSubscription != null},data-current-plan=${activeSubscription != null ? activeSubscription.planName : ''}"
+                            onclick="subscribeMobile(this)">
+                        <i class="fas fa-bolt"></i>
+                        <span>Activate Now</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+
+        function getCsrfToken() { return document.querySelector('meta[name="_csrf"]').getAttribute('content'); }
+        function getCsrfHeader() { return document.querySelector('meta[name="_csrf_header"]').getAttribute('content'); }
+
+        function subscribeMobile(btn) {
+            const planCode = btn.getAttribute('data-plan');
+            const planName = btn.getAttribute('data-plan-name');
+            const duration = btn.getAttribute('data-duration');
+            const hasSubscription = btn.getAttribute('data-has-subscription') === 'true';
+            const currentPlan = btn.getAttribute('data-current-plan');
+
+            let confirmMessage;
+
+            if (hasSubscription) {
+                // User already has an active mobile plan - show warning
+                confirmMessage = `⚠️ Current Plan Active\n\n${currentPlan} is currently active.\n\nWould you like to activate ${planName} instead?\n\nNote: This will extend your mobile service for ${duration} days.`;
+            } else {
+                // No active plan - normal activation
+                confirmMessage = `Activate ${planName} for ${duration} days?`;
+            }
+
+            if (!confirm(confirmMessage)) return;
+
+            const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+            const csrf = getCsrfToken();
+            if (csrf) headers[getCsrfHeader()] = csrf;
+
+            const body = new URLSearchParams();
+            body.append('planCode', planCode);
+            body.append('duration', 1); // For mobile, duration is handled by plan's durationDays
+
+            fetch('/subscribe', { method: 'POST', headers: headers, body: body })
+                .then(r => r.ok ? r.text() : r.text().then(t => { throw new Error(t); }))
+                .then(msg => {
+                    const successMsg = `${planName} activated successfully for ${duration} days!`;
+                    showNotification(successMsg, 'success');
+                    setTimeout(() => window.location.href = '/my-subscriptions?filter=MOBILE', 2000);
+                })
+                .catch(err => showNotification('Failed: ' + err.message, 'error'));
+        }
+
+        function showNotification(msg, type = 'success') {
+            const existing = document.querySelector('.notification');
+            if (existing) existing.remove();
+            const notif = document.createElement('div');
+            notif.className = `notification ${type}`;
+            notif.innerHTML = `<span style="font-size:20px;">${type === 'success' ? '✓' : '✕'}</span><span>${msg}</span>`;
+            document.body.appendChild(notif);
+            setTimeout(() => notif.remove(), 3000);
+        }
+    </script>
+
+    <!-- Navigation Scripts -->
+    <script th:src="@{/js/client-nav.js}"></script>
+</body>
+</html>

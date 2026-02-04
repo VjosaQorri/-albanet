@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title>AlbaNet - Home</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/client-nav.css}">
+
+    <style>
+        body {
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 30px;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 80px 30px;
+            text-align: center;
+            border-radius: 20px;
+            margin-bottom: 50px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .hero h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .hero p {
+            font-size: 20px;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Services Grid */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .service-card {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .service-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .service-card i {
+            font-size: 64px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .service-card h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .service-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* Features Section */
+        .features {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 50px;
+        }
+
+        .features h2 {
+            text-align: center;
+            font-size: 32px;
+            margin-bottom: 40px;
+            color: #333;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .feature-item i {
+            font-size: 32px;
+            color: #667eea;
+            flex-shrink: 0;
+        }
+
+        .feature-item h4 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .feature-item p {
+            color: #666;
+            line-height: 1.5;
+        }
+
+        /* Mobile Responsive - Page specific only */
+        @media (max-width: 768px) {
+
+            .hero h1 {
+                font-size: 32px;
+            }
+
+            .hero p {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-wifi"></i> AlbaNet
+            </div>
+            <ul class="nav-links">
+                <li><a href="/home" class="active">
+                    <i class="fas fa-home"></i> Home
+                </a></li>
+                <li><a href="/tv">
+                    <i class="fas fa-tv"></i> TV
+                </a></li>
+                <li><a href="/mobile">
+                    <i class="fas fa-mobile-alt"></i> Mobile
+                </a></li>
+                <li><a href="/internet">
+                    <i class="fas fa-wifi"></i> Internet
+                </a></li>
+                <li><a href="/help">
+                    <i class="fas fa-question-circle"></i> Help
+                </a></li>
+            </ul>
+            <div class="user-section">
+                <button class="user-button" onclick="toggleDropdown()">
+                    <i class="fas fa-user-circle"></i>
+                    <span th:text="${userName != null ? userName : 'User'}">User</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div id="userDropdown" class="dropdown-content">
+                    <div class="dropdown-header">
+                        <span th:text="${userEmail != null ? userEmail : 'user@example.com'}">user@example.com</span>
+                    </div>
+                    <a href="/profile"><i class="fas fa-user"></i> Profile</a>
+                    <a href="/my-tickets"><i class="fas fa-ticket-alt"></i> My Tickets</a>
+                    <a href="/my-subscriptions"><i class="fas fa-list-alt"></i> My Subscriptions</a>
+                    <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="logout-link">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                    <form id="logout-form" th:action="@{/logout}" method="post" style="display: none;"></form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Hero Section -->
+        <div class="hero">
+            <h1>Welcome to AlbaNet</h1>
+            <p>Your trusted provider for TV, Mobile, and Internet services. Experience the best connectivity solutions in Albania.</p>
+        </div>
+
+        <!-- Services Grid -->
+        <div class="services-grid">
+            <div class="service-card" onclick="window.location.href='/client/tv'">
+                <i class="fas fa-tv"></i>
+                <h3>TV Services</h3>
+                <p>Enjoy hundreds of channels in HD quality with our premium TV packages.</p>
+            </div>
+
+            <div class="service-card" onclick="window.location.href='/client/mobile'">
+                <i class="fas fa-mobile-alt"></i>
+                <h3>Mobile Plans</h3>
+                <p>Stay connected with our flexible mobile plans and unlimited data options.</p>
+            </div>
+
+            <div class="service-card" onclick="window.location.href='/internet'">
+                <i class="fas fa-wifi"></i>
+                <h3>Internet</h3>
+                <p>Ultra-fast fiber internet for seamless browsing, streaming, and gaming.</p>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="features">
+            <h2>Why Choose AlbaNet?</h2>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <i class="fas fa-bolt"></i>
+                    <div>
+                        <h4>Lightning Fast</h4>
+                        <p>Experience blazing fast speeds with our fiber-optic network.</p>
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <i class="fas fa-headset"></i>
+                    <div>
+                        <h4>24/7 Support</h4>
+                        <p>Our dedicated support team is always ready to help you.</p>
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <i class="fas fa-shield-alt"></i>
+                    <div>
+                        <h4>Secure & Reliable</h4>
+                        <p>Your data is safe with our state-of-the-art security measures.</p>
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <i class="fas fa-dollar-sign"></i>
+                    <div>
+                        <h4>Affordable Prices</h4>
+                        <p>Premium services at competitive prices that fit your budget.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:src="@{/js/client-nav.js}"></script>
+</body>
+</html>

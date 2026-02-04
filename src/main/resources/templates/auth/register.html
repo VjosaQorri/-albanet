@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>AlbaNet - Create Account</title>
+    <link rel="stylesheet" href="/css/register.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+<div class="register-container">
+    <div class="glass-card">
+        <h1>Create Account</h1>
+        <p class="subtitle">Join AlbaNet for reliable internet services</p>
+
+        <!-- Success/Error Messages -->
+        <div th:if="${success}" class="success-message">
+            <i class="fas fa-check-circle"></i>
+            <span th:text="${success}"></span>
+        </div>
+
+        <div th:if="${error}" class="error-message">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span th:text="${error}"></span>
+        </div>
+
+        <form th:action="@{/register}" method="post">
+            <!-- CSRF token is automatically added by Thymeleaf when using th:action -->
+
+            <!-- Personal Information -->
+            <div class="form-section">
+                <h3>Personal Information</h3>
+
+                <div class="input-row">
+                    <div class="input-group half">
+                        <div class="input-wrapper">
+                            <i class="fas fa-user input-icon"></i>
+                            <input type="text" name="firstName" placeholder="First Name" required>
+                        </div>
+                    </div>
+                    <div class="input-group half">
+                        <div class="input-wrapper">
+                            <i class="fas fa-user input-icon"></i>
+                            <input type="text" name="lastName" placeholder="Last Name" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <div class="input-wrapper">
+                        <i class="fas fa-envelope input-icon"></i>
+                        <input type="email" name="email" placeholder="Email Address" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <div class="input-wrapper">
+                        <i class="fas fa-phone input-icon"></i>
+                        <input type="tel" name="phoneNumber" placeholder="Phone Number" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <div class="input-wrapper">
+                        <i class="fas fa-lock input-icon"></i>
+                        <input type="password" name="password" placeholder="Password" minlength="8" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Address Information -->
+            <div class="form-section">
+                <h3>Address Information</h3>
+
+                <div class="input-group">
+                    <div class="input-wrapper">
+                        <i class="fas fa-road input-icon"></i>
+                        <input type="text" name="street" placeholder="Street Address" required>
+                    </div>
+                </div>
+
+                <div class="input-row">
+                    <div class="input-group half">
+                        <div class="input-wrapper">
+                            <i class="fas fa-city input-icon"></i>
+                            <input type="text" name="city" placeholder="City" required>
+                        </div>
+                    </div>
+                    <div class="input-group half">
+                        <div class="input-wrapper">
+                            <i class="fas fa-mail-bulk input-icon"></i>
+                            <input type="text" name="postalCode" placeholder="Postal Code" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <div class="input-wrapper">
+                        <i class="fas fa-globe input-icon"></i>
+                        <input type="text" name="country" placeholder="Country" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Terms and Create Account -->
+            <div class="form-section">
+                <label class="terms-checkbox">
+                    <input type="checkbox" name="terms" required>
+                    <span class="checkmark"></span>
+                    I agree to the <a href="#" class="terms-link">Terms of Service</a> and <a href="#" class="terms-link">Privacy Policy</a>
+                </label>
+
+                <button class="register-btn" type="submit">
+                    <i class="fas fa-user-plus"></i>
+                    Create Account
+                </button>
+            </div>
+
+            <div class="login-link">
+                Already have an account?
+                <a th:href="@{/login}" class="login-text">Sign In</a>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

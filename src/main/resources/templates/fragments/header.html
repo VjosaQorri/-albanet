@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Fragments</title>
+</head>
+<body>
+
+<!-- ================================
+     CLIENT NAVIGATION BAR FRAGMENT
+     ================================ -->
+<nav th:fragment="clientNav" class="navbar">
+    <div class="nav-container">
+        <div class="logo">
+            <i class="fas fa-wifi"></i> AlbaNet
+        </div>
+        <ul class="nav-links">
+            <li><a th:href="@{/home}" th:classappend="${#request.requestURI == '/home'} ? 'active' : ''">
+                <i class="fas fa-home"></i> Home
+            </a></li>
+            <li><a th:href="@{/tv}" th:classappend="${#request.requestURI == '/tv'} ? 'active' : ''">
+                <i class="fas fa-tv"></i> TV
+            </a></li>
+            <li><a th:href="@{/mobile}" th:classappend="${#request.requestURI == '/mobile'} ? 'active' : ''">
+                <i class="fas fa-mobile-alt"></i> Mobile
+            </a></li>
+            <li><a th:href="@{/internet}" th:classappend="${#request.requestURI == '/internet'} ? 'active' : ''">
+                <i class="fas fa-wifi"></i> Internet
+            </a></li>
+            <li><a th:href="@{/help}" style="background: rgba(255, 255, 255, 0.2); border-radius: 8px;">
+                <i class="fas fa-question-circle"></i> Help
+            </a></li>
+        </ul>
+        <div class="user-section">
+            <button class="user-button" onclick="toggleDropdown()">
+                <i class="fas fa-user-circle"></i>
+                <span th:text="${userName != null ? userName : 'User'}">User</span>
+                <i class="fas fa-chevron-down"></i>
+            </button>
+            <div id="userDropdown" class="dropdown-content">
+                <div class="dropdown-header">
+                    <span th:text="${userEmail != null ? userEmail : 'user@example.com'}">user@example.com</span>
+                </div>
+                <a th:href="@{/profile}"><i class="fas fa-user"></i> Profile</a>
+                <a th:href="@{/my-tickets}"><i class="fas fa-ticket-alt"></i> My Tickets</a>
+                <a th:href="@{/my-subscriptions}"><i class="fas fa-list-alt"></i> My Subscriptions</a>
+                <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="logout-link">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+                <form id="logout-form" th:action="@{/logout}" method="post" style="display: none;"></form>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- ================================
+     CLIENT NAV STYLES FRAGMENT
+     ================================ -->
+<th:block th:fragment="clientNavStyles">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 1rem;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 0.7rem 1.2rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .nav-links a.active {
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-section {
+            position: relative;
+        }
+
+        .user-button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 0.7rem 1.2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .user-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 60px;
+            background: white;
+            min-width: 250px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            animation: slideDown 0.3s ease;
+        }
+
+        .dropdown-content.show {
+            display: block;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .dropdown-header {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .dropdown-content a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 1rem 1.2rem;
+            color: #333;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .dropdown-content a:hover {
+            background: #f5f5f5;
+        }
+
+        .dropdown-content a i {
+            width: 20px;
+            color: #667eea;
+        }
+
+        .logout-link {
+            border-top: 1px solid #eee;
+            color: #e74c3c !important;
+        }
+
+        .logout-link:hover {
+            background: #ffebee !important;
+        }
+    </style>
+</th:block>
+
+<!-- ================================
+     CLIENT NAV SCRIPTS FRAGMENT
+     ================================ -->
+<th:block th:fragment="clientNavScripts">
+    <script>
+        function toggleDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        window.addEventListener('click', function(e) {
+            if (!e.target.matches('.user-button') && !e.target.closest('.user-button')) {
+                const dropdown = document.getElementById('userDropdown');
+                if (dropdown && dropdown.classList.contains('show')) {
+                    dropdown.classList.remove('show');
+                }
+            }
+        });
+    </script>
+</th:block>
+
+</body>
+</html>

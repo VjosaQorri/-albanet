@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title>My Dashboard - AlbaNet</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-left {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .staff-info {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .staff-info .badge {
+            background: #667eea;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        .logout-btn {
+            background: #ff6b6b;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .logout-btn:hover {
+            background: #ff5252;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .stat-card .number {
+            font-size: 36px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .label {
+            color: #666;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        .tabs {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 0;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .tab-buttons {
+            display: flex;
+            border-bottom: 2px solid #eee;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 20px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .tab-btn.active {
+            color: #667eea;
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #667eea;
+        }
+
+        .tab-btn:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .content {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        tr {
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .badge {
+            padding: 5px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-open {
+            background: #ffeaa7;
+            color: #d63031;
+        }
+
+        .badge-progress {
+            background: #74b9ff;
+            color: #0984e3;
+        }
+
+        .badge-done {
+            background: #55efc4;
+            color: #00b894;
+        }
+
+        .badge-t1 {
+            background: #a29bfe;
+            color: #6c5ce7;
+        }
+
+        .badge-t2 {
+            background: #fd79a8;
+            color: #e84393;
+        }
+
+        .badge-finance {
+            background: #ffeaa7;
+            color: #fdcb6e;
+        }
+
+        .priority-high {
+            color: #d63031;
+            font-weight: bold;
+        }
+
+        .priority-medium {
+            color: #fdcb6e;
+            font-weight: bold;
+        }
+
+        .priority-low {
+            color: #00b894;
+            font-weight: bold;
+        }
+
+        .claim-btn {
+            background: #00b894;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .claim-btn:hover {
+            background: #00a383;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .empty-state p {
+            font-size: 18px;
+        }
+
+        /* Notification Styles */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            animation: slideInRight 0.3s ease-out;
+            min-width: 300px;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .notification.success {
+            background: #4caf50;
+            color: white;
+        }
+
+        .notification.error {
+            background: #f44336;
+            color: white;
+        }
+
+        .notification.fadeOut {
+            animation: fadeOut 0.3s ease-out forwards;
+        }
+
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: translateX(400px);
+            }
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 50px auto;
+            padding: 0;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 800px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 24px;
+        }
+
+        .close {
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+            transition: transform 0.2s;
+        }
+
+        .close:hover {
+            transform: scale(1.2);
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .ticket-info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .info-value {
+            font-size: 16px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .description-box {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .resolution-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
+        }
+
+        .resolution-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .done-btn {
+            flex: 1;
+            background: #00b894;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .done-btn:hover {
+            background: #00a383;
+        }
+
+        .cancel-btn {
+            flex: 1;
+            background: #ddd;
+            color: #333;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .cancel-btn:hover {
+            background: #ccc;
+        }
+
+        .customer-info-section {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #2196f3;
+        }
+
+        .customer-info-section h4 {
+            color: #1976d2;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <h1><i class="fas fa-user-cog"></i> My Dashboard</h1>
+            <div class="staff-info">
+                <span th:text="${staffName}">Staff Name</span>
+                <span class="badge" th:text="${staffTeam}">T1</span>
+            </div>
+        </div>
+        <form th:action="@{/staff/logout}" method="post" style="display: inline;">
+            <button type="submit" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </form>
+    </div>
+
+    <!-- Statistics -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="number" th:text="${stats.totalTickets}">0</div>
+            <div class="label">Total Tickets</div>
+        </div>
+        <div class="stat-card">
+            <div class="number" th:text="${stats.inProgress}">0</div>
+            <div class="label">In Progress</div>
+        </div>
+        <div class="stat-card">
+            <div class="number" th:text="${stats.completed}">0</div>
+            <div class="label">Completed</div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+        <div class="tab-buttons">
+            <button class="tab-btn" th:classappend="${currentView == 'unassigned' || currentView == null} ? 'active'"
+                    onclick="window.location.href='/staff/my-dashboard?view=unassigned'">
+                <i class="fas fa-inbox"></i> Unassigned Tickets
+            </button>
+            <button class="tab-btn" th:classappend="${currentView == 'my-tickets'} ? 'active'"
+                    onclick="window.location.href='/staff/my-dashboard?view=my-tickets'">
+                <i class="fas fa-tasks"></i> My Tickets
+            </button>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+        <div th:if="${tickets.isEmpty()}" class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <p th:if="${currentView == 'my-tickets'}">You don't have any tickets assigned yet.</p>
+            <p th:if="${currentView != 'my-tickets'}">No unassigned tickets available.</p>
+        </div>
+
+        <table th:if="${!tickets.isEmpty()}">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Created</th>
+                <th th:if="${currentView == 'unassigned' || currentView == null}">Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="ticket : ${tickets}" th:onclick="'openTicketModal(' + ${ticket.id} + ')'">
+                <td th:text="${ticket.id}">#001</td>
+                <td th:text="${ticket.title}">Internet connection issue</td>
+                <td>
+                    <span class="badge"
+                          th:classappend="${ticket.status.name() == 'OPEN'} ? 'badge-open' : (${ticket.status.name() == 'IN_PROGRESS'} ? 'badge-progress' : 'badge-done')"
+                          th:text="${ticket.status.name()}">OPEN</span>
+                </td>
+                <td>
+                    <span th:class="${ticket.priority.name() == 'HIGH'} ? 'priority-high' : (${ticket.priority.name() == 'MEDIUM'} ? 'priority-medium' : 'priority-low')"
+                          th:text="${ticket.priority.name()}">HIGH</span>
+                </td>
+                <td th:text="${#temporals.format(ticket.createdAt, 'dd/MM/yyyy HH:mm')}">01/02/2026 10:30</td>
+                <td th:if="${currentView == 'unassigned' || currentView == null}" onclick="event.stopPropagation()">
+                    <button class="claim-btn" th:onclick="'claimTicket(' + ${ticket.id} + ')'">
+                        <i class="fas fa-hand-paper"></i> Claim
+                    </button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Ticket Details Modal -->
+<div id="ticketModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2><i class="fas fa-ticket-alt"></i> Ticket #<span id="modal-ticket-id">001</span></h2>
+            <span class="close" onclick="closeModal()">&times;</span>
+        </div>
+
+        <div class="modal-body">
+            <!-- Ticket Information -->
+            <div class="ticket-info-grid">
+                <div class="info-item">
+                    <div class="info-label">Status</div>
+                    <div class="info-value">
+                        <span id="modal-status" class="badge">OPEN</span>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Priority</div>
+                    <div class="info-value" id="modal-priority">HIGH</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Team</div>
+                    <div class="info-value" id="modal-team">T1</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Created</div>
+                    <div class="info-value" id="modal-created-at">01/02/2026 10:30</div>
+                </div>
+            </div>
+
+            <!-- Title -->
+            <div class="info-item" style="margin-bottom: 15px;">
+                <div class="info-label">Title</div>
+                <div class="info-value" id="modal-title">Ticket Title</div>
+            </div>
+
+            <!-- Description -->
+            <div class="description-box">
+                <div class="info-label">Description</div>
+                <div id="modal-description" style="color: #666; line-height: 1.6; margin-top: 10px;">
+                    Ticket description will appear here...
+                </div>
+            </div>
+
+            <!-- Customer Information -->
+            <div class="customer-info-section">
+                <h4><i class="fas fa-user-circle"></i> Customer Information</h4>
+                <div class="ticket-info-grid">
+                    <div style="padding: 5px 0;">
+                        <div class="info-label">Name</div>
+                        <div class="info-value" id="modal-customer-name">-</div>
+                    </div>
+                    <div style="padding: 5px 0;">
+                        <div class="info-label">Email</div>
+                        <div class="info-value" id="modal-customer-email">-</div>
+                    </div>
+                    <div style="padding: 5px 0;">
+                        <div class="info-label">Phone</div>
+                        <div class="info-value" id="modal-customer-phone">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resolution Section (Only for My Tickets) -->
+            <div id="resolution-section" class="resolution-section" style="display: none;">
+                <h3><i class="fas fa-check-circle"></i> Mark as Done</h3>
+                <div class="form-group">
+                    <label for="resolution-text">Resolution Summary *</label>
+                    <textarea id="resolution-text"
+                              placeholder="Describe what you did to resolve this issue...&#10;&#10;Example:&#10;- Checked the router configuration&#10;- Reset the network adapter&#10;- Issue resolved, internet connection restored"></textarea>
+                </div>
+                <div class="action-buttons">
+                    <button class="done-btn" onclick="markTicketDone()">
+                        <i class="fas fa-check"></i> Mark as Done
+                    </button>
+                    <button class="cancel-btn" onclick="closeModal()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    let currentTicketId = null;
+    const currentView = /*[[${currentView}]]*/ 'unassigned';
+
+    function getCsrfToken() {
+        return document.querySelector('meta[name="_csrf"]').getAttribute('content');
+    }
+
+    function getCsrfHeader() {
+        return document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+    }
+
+    function openTicketModal(ticketId) {
+        currentTicketId = ticketId;
+        const modal = document.getElementById('ticketModal');
+
+        // Fetch ticket details
+        fetch(`/staff/my-tickets/${ticketId}`)
+            .then(response => response.json())
+            .then(ticket => {
+                // Populate modal with ticket data
+                document.getElementById('modal-ticket-id').textContent = ticket.id;
+                document.getElementById('modal-title').textContent = ticket.title;
+                document.getElementById('modal-description').textContent = ticket.description;
+                document.getElementById('modal-status').textContent = ticket.status;
+                document.getElementById('modal-status').className = 'badge badge-' +
+                    (ticket.status === 'OPEN' ? 'open' : (ticket.status === 'IN_PROGRESS' ? 'progress' : 'done'));
+
+                document.getElementById('modal-priority').textContent = ticket.priority;
+                document.getElementById('modal-team').textContent = ticket.assignedTeam;
+                document.getElementById('modal-created-at').textContent = formatDate(ticket.createdAt);
+
+                // Populate customer information
+                document.getElementById('modal-customer-name').textContent = ticket.customerName || 'N/A';
+                document.getElementById('modal-customer-email').textContent = ticket.customerEmail || 'N/A';
+                document.getElementById('modal-customer-phone').textContent = ticket.customerPhone || 'N/A';
+
+                // Show resolution section only if ticket is assigned to current user (my tickets view)
+                const resolutionSection = document.getElementById('resolution-section');
+                if (currentView === 'my-tickets' && ticket.status !== 'DONE') {
+                    resolutionSection.style.display = 'block';
+                    // Pre-fill resolution if exists
+                    document.getElementById('resolution-text').value = ticket.resolutionSummary || '';
+                } else {
+                    resolutionSection.style.display = 'none';
+                }
+
+                // Show modal
+                modal.style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error loading ticket:', error);
+                showNotification('Failed to load ticket details', 'error');
+            });
+    }
+
+    function closeModal() {
+        document.getElementById('ticketModal').style.display = 'none';
+        currentTicketId = null;
+        document.getElementById('resolution-text').value = '';
+    }
+
+    function markTicketDone() {
+        const resolution = document.getElementById('resolution-text').value.trim();
+
+        if (!resolution) {
+            showNotification('Please enter a resolution summary', 'error');
+            return;
+        }
+
+        if (!confirm('Mark this ticket as DONE?')) {
+            return;
+        }
+
+        const headers = {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        };
+
+        const csrfToken = getCsrfToken();
+        if (csrfToken) {
+            headers[getCsrfHeader()] = csrfToken;
+        }
+
+        // First, add the resolution
+        const resolutionData = new URLSearchParams();
+        resolutionData.append('resolution', resolution);
+
+        fetch(`/staff/my-tickets/${currentTicketId}/resolution`, {
+            method: 'POST',
+            headers: headers,
+            body: resolutionData
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.text().then(text => {
+                    throw new Error(text || 'Failed to add resolution');
+                });
+            }
+            return response.text();
+        })
+        .then(() => {
+            // Then update status to DONE
+            const statusData = new URLSearchParams();
+            statusData.append('status', 'DONE');
+
+            return fetch(`/staff/my-tickets/${currentTicketId}/status`, {
+                method: 'POST',
+                headers: headers,
+                body: statusData
+            });
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.text().then(text => {
+                    throw new Error(text || 'Failed to update status');
+                });
+            }
+            return response.text();
+        })
+        .then(() => {
+            showNotification('Ticket marked as done successfully!', 'success');
+            closeModal();
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Failed to mark ticket as done: ' + error.message, 'error');
+        });
+    }
+
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${day}/${month}/${year} ${hours}:${minutes}`;
+    }
+
+    function claimTicket(ticketId) {
+        if (!confirm('Do you want to claim this ticket?')) {
+            return;
+        }
+
+        const headers = {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        };
+
+        const csrfToken = getCsrfToken();
+        if (csrfToken) {
+            headers[getCsrfHeader()] = csrfToken;
+        }
+
+        fetch(`/staff/tickets/${ticketId}/claim`, {
+            method: 'POST',
+            headers: headers
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.text().then(text => {
+                    throw new Error(text || 'Failed to claim ticket');
+                });
+            }
+            return response.text();
+        })
+        .then(message => {
+            showNotification('Ticket claimed successfully!', 'success');
+            setTimeout(() => {
+                window.location.href = '/staff/my-dashboard?view=my-tickets';
+            }, 1500);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Failed to claim ticket: ' + error.message, 'error');
+        });
+    }
+
+    function showNotification(message, type = 'success') {
+        // Remove any existing notifications
+        const existingNotification = document.querySelector('.notification');
+        if (existingNotification) {
+            existingNotification.remove();
+        }
+
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+
+        const icon = type === 'success' ? '✓' : '✕';
+        notification.innerHTML = `
+            <span style="font-size: 20px;">${icon}</span>
+            <span>${message}</span>
+        `;
+
+        document.body.appendChild(notification);
+
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            notification.classList.add('fadeOut');
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
+    // Real-time ticket updates via Server-Sent Events
+    let eventSource = null;
+
+    function connectToTicketStream() {
+        if (eventSource) {
+            eventSource.close();
+        }
+
+        // Get team from staff member (passed from backend) - using unescaped text
+        const staffTeam = /*[[${staffTeam}]]*/ 'FINANCE';
+        console.log('[SSE] Attempting to connect for team:', staffTeam);
+
+        // Connect to SSE endpoint for specific team
+        eventSource = new EventSource('/staff/tickets/stream?team=' + staffTeam);
+
+        eventSource.addEventListener('connected', function(e) {
+            console.log('[SSE] ✅ Connected to ticket stream for team:', staffTeam, '| Message:', e.data);
+            console.log('[SSE] Connection state:', eventSource.readyState);
+        });
+
+        eventSource.addEventListener('new-ticket', function(e) {
+            console.log('[SSE] 🎫 New ticket notification:', e.data);
+            showNotification('New ticket available! Refreshing dashboard...', 'success');
+
+            // Reload the page after 1 second to show the new ticket
+            setTimeout(() => {
+                console.log('[SSE] Reloading page...');
+                window.location.reload();
+            }, 1000);
+        });
+
+        eventSource.addEventListener('ticket-update', function(e) {
+            console.log('[SSE] 🔄 Ticket updated:', e.data);
+        });
+
+        eventSource.onopen = function(e) {
+            console.log('[SSE] ✅ Connection opened successfully for team:', staffTeam);
+        };
+
+        eventSource.onerror = function(error) {
+            console.error('[SSE] ❌ Error for team:', staffTeam, error);
+            console.error('[SSE] ReadyState:', eventSource.readyState);
+            eventSource.close();
+
+            // Reconnect after 5 seconds
+            console.log('[SSE] Reconnecting in 5 seconds...');
+            setTimeout(() => {
+                connectToTicketStream();
+            }, 5000);
+        };
+    }
+
+    // Initialize SSE connection on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        connectToTicketStream();
+    });
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('ticketModal');
+        if (event.target == modal) {
+            closeModal();
+        }
+    }
+</script>
+</body>
+</html>

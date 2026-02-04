@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title>Internet Services - AlbaNet</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/client-nav.css}">
+
+    <style>
+        body {
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+
+        .container { max-width: 1400px; margin: 0 auto; padding: 40px 30px; }
+        .hero { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 60px 30px; text-align: center; border-radius: 20px; margin-bottom: 50px; }
+        .hero h1 { font-size: 42px; margin-bottom: 15px; }
+        .hero p { font-size: 18px; opacity: 0.9; }
+
+        /* Subscription Cards */
+        .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px; }
+        .plan-card { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08); transition: transform 0.3s, box-shadow 0.3s; position: relative; }
+        .plan-card:hover { transform: translateY(-10px); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15); }
+        .plan-card.featured { border: 3px solid #667eea; position: relative; }
+        .plan-card.featured::before { content: 'POPULAR'; position: absolute; top: 20px; right: -30px; background: #667eea; color: white; padding: 5px 40px; transform: rotate(45deg); font-weight: bold; font-size: 12px; z-index: 1; }
+
+        .plan-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; }
+        .plan-header h3 { font-size: 24px; margin-bottom: 10px; }
+        .plan-header .price { font-size: 42px; font-weight: bold; margin: 15px 0; }
+        .plan-header .price span { font-size: 18px; font-weight: normal; }
+        .plan-header .description { font-size: 14px; opacity: 0.9; }
+
+        .plan-body { padding: 30px; }
+        .features-list { list-style: none; margin-bottom: 25px; }
+        .features-list li { padding: 12px 0; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #f0f0f0; }
+        .features-list li:last-child { border-bottom: none; }
+        .features-list li i { color: #00b894; font-size: 18px; flex-shrink: 0; }
+
+        .duration-selector { margin-bottom: 20px; }
+        .duration-selector label { display: block; margin-bottom: 10px; font-weight: 600; color: #333; }
+        .duration-buttons { display: flex; gap: 10px; }
+        .duration-btn { flex: 1; padding: 12px; border: 2px solid #ddd; background: white; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
+        .duration-btn:hover { border-color: #667eea; }
+        .duration-btn.active { background: #667eea; color: white; border-color: #667eea; }
+
+        .subscribe-btn { width: 100%; padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: transform 0.3s; }
+        .subscribe-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); }
+
+        /* Subscribed Badge */
+        .subscribed-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: #00b894;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 12px;
+            z-index: 2;
+            box-shadow: 0 2px 10px rgba(0, 184, 148, 0.3);
+        }
+        .subscribed-badge i { margin-right: 5px; }
+
+        /* Pending Badge */
+        .pending-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: #fdcb6e;
+            color: #2d3436;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 12px;
+            z-index: 2;
+            box-shadow: 0 2px 10px rgba(253, 203, 110, 0.3);
+        }
+        .pending-badge i { margin-right: 5px; }
+
+        /* Beautiful Centered Notification Modal */
+        .notification-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        .notification-modal {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-align: center;
+        }
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px) scale(0.9);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+        .notification-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            animation: iconPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.2s both;
+        }
+        @keyframes iconPop {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .notification-icon.success {
+            background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+            color: white;
+        }
+        .notification-icon.error {
+            background: linear-gradient(135deg, #ff7675 0%, #fd79a8 100%);
+            color: white;
+        }
+        .notification-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2d3436;
+            margin-bottom: 12px;
+        }
+        .notification-message {
+            font-size: 16px;
+            color: #636e72;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        .notification-close-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 40px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        .notification-close-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Custom Confirmation Modal */
+        .confirm-modal {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-align: center;
+        }
+        .confirm-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 25px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            animation: iconPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.2s both;
+        }
+        .confirm-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2d3436;
+            margin-bottom: 12px;
+        }
+        .confirm-message {
+            font-size: 16px;
+            color: #636e72;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            white-space: pre-line;
+        }
+        .confirm-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        .confirm-btn {
+            padding: 14px 40px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            flex: 1;
+            max-width: 200px;
+        }
+        .confirm-btn.yes {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        .confirm-btn.yes:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        .confirm-btn.no {
+            background: #f0f0f0;
+            color: #636e72;
+        }
+        .confirm-btn.no:hover {
+            background: #e0e0e0;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-wifi"></i> AlbaNet
+            </div>
+            <ul class="nav-links">
+                <li><a href="/home"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="/tv"><i class="fas fa-tv"></i> TV</a></li>
+                <li><a href="/mobile"><i class="fas fa-mobile-alt"></i> Mobile</a></li>
+                <li><a href="/internet" class="active"><i class="fas fa-wifi"></i> Internet</a></li>
+                <li><a href="/help"><i class="fas fa-question-circle"></i> Help</a></li>
+            </ul>
+            <div class="user-section">
+                <button class="user-button" onclick="toggleDropdown()">
+                    <i class="fas fa-user-circle"></i>
+                    <span th:text="${userName != null ? userName : 'User'}">User</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div id="userDropdown" class="dropdown-content">
+                    <div class="dropdown-header">
+                        <span th:text="${userEmail != null ? userEmail : 'user@example.com'}">user@example.com</span>
+                    </div>
+                    <a href="/profile"><i class="fas fa-user"></i> Profile</a>
+                    <a href="/my-tickets"><i class="fas fa-ticket-alt"></i> My Tickets</a>
+                    <a href="/my-subscriptions"><i class="fas fa-list-alt"></i> My Subscriptions</a>
+                    <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="logout-link">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                    <form id="logout-form" th:action="@{/logout}" method="post" style="display: none;"></form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="hero">
+            <h1><i class="fas fa-wifi"></i> Internet Services</h1>
+            <p>Ultra-fast internet for seamless browsing, streaming, and gaming</p>
+        </div>
+
+        <div class="plans-grid">
+            <div th:each="plan, iterStat : ${plans}" class="plan-card" th:classappend="${iterStat.index == 1} ? 'featured'">
+                <!-- Currently Subscribed Badge (Green) - Show on active plan -->
+                <span th:if="${activeSubscription != null && activeSubscription.planCode.name() == plan.code.name()}" class="subscribed-badge">
+                    <i class="fas fa-check-circle"></i> Currently Subscribed
+                </span>
+
+                <!-- Pending Subscription Badge (Yellow) - Show on pending plan -->
+                <span th:if="${pendingSubscription != null && pendingSubscription.planCode.name() == plan.code.name()}" class="pending-badge">
+                    <i class="fas fa-clock"></i> Pending Subscription
+                </span>
+
+                <div class="plan-header">
+                    <h3 th:text="${plan.name}">WiFi Basic</h3>
+                    <div class="price">€<span th:text="${plan.monthlyPrice}">14.99</span><span>/month</span></div>
+                    <div class="description" th:text="${plan.description}">Essential Internet package</div>
+                </div>
+                <div class="plan-body">
+                    <ul class="features-list">
+                        <li th:each="feature : ${plan.features.split(',')}">
+                            <i class="fas fa-check-circle"></i>
+                            <span th:text="${feature}">Feature</span>
+                        </li>
+                    </ul>
+                    <div class="duration-selector">
+                        <label>Select Duration:</label>
+                        <div class="duration-buttons">
+                            <button class="duration-btn active" th:attr="data-plan=${plan.code}" data-duration="1" onclick="selectDuration(this)">1 Month</button>
+                            <button class="duration-btn" th:attr="data-plan=${plan.code}" data-duration="3" onclick="selectDuration(this)">3 Months</button>
+                            <button class="duration-btn" th:attr="data-plan=${plan.code}" data-duration="6" onclick="selectDuration(this)">6 Months</button>
+                        </div>
+                    </div>
+                    <button class="subscribe-btn"
+                            th:attr="data-plan=${plan.code},data-current-plan=${currentPlanCode},data-category='INTERNET'"
+                            onclick="subscribe(this)">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Subscribe Now</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        function toggleDropdown() { document.getElementById('userDropdown').classList.toggle('show'); }
+        window.onclick = function(e) { if (!e.target.matches('.user-btn') && !e.target.matches('.user-btn *')) { const d = document.getElementById('userDropdown'); if (d.classList.contains('show')) d.classList.remove('show'); } }
+
+        function getCsrfToken() { return document.querySelector('meta[name="_csrf"]').getAttribute('content'); }
+        function getCsrfHeader() { return document.querySelector('meta[name="_csrf_header"]').getAttribute('content'); }
+
+        // Plan hierarchy for Internet
+        const planHierarchy = {
+            'WIFI_BASIC': 1,
+            'WIFI_STANDARD': 2,
+            'WIFI_PREMIUM': 3
+        };
+
+        // Update button text on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.subscribe-btn').forEach(btn => {
+                const planCode = btn.getAttribute('data-plan');
+                const currentPlan = btn.getAttribute('data-current-plan');
+                const category = btn.getAttribute('data-category');
+
+                updateButtonText(btn, planCode, currentPlan, category);
+            });
+        });
+
+        function updateButtonText(btn, planCode, currentPlan, category) {
+            const pendingPlanCode = /*[[${pendingSubscription != null ? pendingSubscription.planCode.name() : ''}]]*/ '';
+
+            if (!currentPlan) {
+                // No subscription at all
+                btn.querySelector('i').className = 'fas fa-shopping-cart';
+                btn.querySelector('span').textContent = 'Subscribe Now';
+                return;
+            }
+
+            if (planCode === currentPlan) {
+                // This is the current ACTIVE plan
+                if (pendingPlanCode) {
+                    // Has pending subscription - disable extend on active plan
+                    btn.disabled = true;
+                    btn.style.opacity = '0.5';
+                    btn.style.cursor = 'not-allowed';
+                    btn.querySelector('i').className = 'fas fa-check-circle';
+                    btn.querySelector('span').textContent = 'Current Plan';
+                } else {
+                    // No pending - allow extend
+                    btn.querySelector('i').className = 'fas fa-plus-circle';
+                    btn.querySelector('span').textContent = 'Extend Subscription';
+                }
+            } else if (pendingPlanCode && planCode === pendingPlanCode) {
+                // This is the PENDING plan - show Extend Subscription
+                btn.querySelector('i').className = 'fas fa-plus-circle';
+                btn.querySelector('span').textContent = 'Extend Subscription';
+            } else {
+                // Different plan - show upgrade/downgrade
+                const currentTier = planHierarchy[currentPlan] || 0;
+                const newTier = planHierarchy[planCode] || 0;
+
+                if (newTier > currentTier) {
+                    btn.querySelector('i').className = 'fas fa-arrow-up';
+                    btn.querySelector('span').textContent = 'Upgrade';
+                } else if (newTier < currentTier) {
+                    btn.querySelector('i').className = 'fas fa-arrow-down';
+                    btn.querySelector('span').textContent = 'Downgrade';
+                } else {
+                    btn.querySelector('i').className = 'fas fa-shopping-cart';
+                    btn.querySelector('span').textContent = 'Subscribe';
+                }
+            }
+        }
+
+        function selectDuration(btn) {
+            const planCode = btn.getAttribute('data-plan');
+            document.querySelectorAll(`.duration-btn[data-plan="${planCode}"]`).forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function subscribe(btn) {
+            if (btn.disabled) return; // Don't allow clicking disabled buttons
+
+            const planCode = btn.getAttribute('data-plan');
+            const currentPlan = btn.getAttribute('data-current-plan');
+            const pendingPlanCode = /*[[${pendingSubscription != null ? pendingSubscription.planCode.name() : ''}]]*/ '';
+            const pendingPlanName = /*[[${pendingPlanName}]]*/ '';
+            const activeDurationBtn = document.querySelector(`.duration-btn[data-plan="${planCode}"].active`);
+            const duration = activeDurationBtn ? activeDurationBtn.getAttribute('data-duration') : 1;
+
+            let confirmMessage;
+            let confirmTitle = 'Confirm Subscription';
+
+            if (!currentPlan) {
+                // New subscription
+                confirmMessage = `Subscribe to this plan for ${duration} month(s)?\n\n💳 You'll be charged on the next billing cycle.`;
+            } else if (planCode === currentPlan) {
+                // Extending current ACTIVE plan
+                confirmTitle = 'Extend Subscription';
+                confirmMessage = `Extend your current subscription by ${duration} month(s)?\n\n💳 You'll be charged on the next billing cycle.`;
+            } else if (pendingPlanCode && planCode === pendingPlanCode) {
+                // Modifying PENDING plan (extend it)
+                confirmTitle = 'Extend Pending Subscription';
+                confirmMessage = `Extend your pending ${pendingPlanName} subscription by ${duration} month(s)?\n\n💳 You'll be charged when the subscription activates.`;
+            } else {
+                // Upgrade or Downgrade
+                const currentTier = planHierarchy[currentPlan] || 0;
+                const newTier = planHierarchy[planCode] || 0;
+                const action = newTier > currentTier ? 'upgrade to' : 'downgrade to';
+                confirmTitle = newTier > currentTier ? 'Confirm Upgrade' : 'Confirm Downgrade';
+
+                if (pendingPlanCode) {
+                    confirmMessage = `${action.charAt(0).toUpperCase() + action.slice(1)} this plan for ${duration} month(s)?\n\nThis will replace your pending ${pendingPlanName} subscription.\n\n💳 You'll be charged when the subscription activates.`;
+                } else {
+                    confirmMessage = `${action.charAt(0).toUpperCase() + action.slice(1)} this plan for ${duration} month(s)?\n\nYour new subscription will start after your current one ends.\n\n💳 You'll be charged when the subscription activates.`;
+                }
+            }
+
+            customConfirm(confirmMessage, confirmTitle).then(confirmed => {
+                if (!confirmed) return;
+
+                const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+                const csrf = getCsrfToken();
+                if (csrf) headers[getCsrfHeader()] = csrf;
+
+                const body = new URLSearchParams();
+                body.append('planCode', planCode);
+                body.append('duration', duration);
+
+                fetch('/subscribe', { method: 'POST', headers: headers, body: body })
+                    .then(r => r.ok ? r.text() : r.text().then(t => { throw new Error(t); }))
+                    .then(msg => {
+                        let successMsg;
+                        if (!currentPlan) {
+                            successMsg = 'Subscription successful!';
+                        } else if (planCode === currentPlan) {
+                            successMsg = `Subscription extended by ${duration} month(s)!`;
+                        } else if (pendingPlanCode && planCode === pendingPlanCode) {
+                            successMsg = `Pending subscription extended by ${duration} month(s)!`;
+                        } else {
+                            successMsg = pendingPlanCode ? 'Pending subscription updated!' : 'Upgrade/Downgrade scheduled!';
+                        }
+                        showNotification(successMsg, 'success');
+                        setTimeout(() => window.location.href = '/my-subscriptions?filter=INTERNET', 2000);
+                    })
+                    .catch(err => showNotification('Failed: ' + err.message, 'error'));
+            });
+        }
+
+        function showNotification(msg, type = 'success') {
+            // Remove existing notification if any
+            const existing = document.querySelector('.notification-overlay');
+            if (existing) existing.remove();
+
+            // Create overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'notification-overlay';
+
+            // Create modal
+            const modal = document.createElement('div');
+            modal.className = 'notification-modal';
+
+            // Icon and content based on type
+            const icon = type === 'success'
+                ? '<i class="fas fa-check-circle"></i>'
+                : '<i class="fas fa-exclamation-circle"></i>';
+            const title = type === 'success' ? 'Success!' : 'Error';
+
+            modal.innerHTML = `
+                <div class="notification-icon ${type}">
+                    ${icon}
+                </div>
+                <div class="notification-title">${title}</div>
+                <div class="notification-message">${msg}</div>
+                <button class="notification-close-btn" onclick="closeNotification()">Got it</button>
+            `;
+
+            overlay.appendChild(modal);
+            document.body.appendChild(overlay);
+
+            // Auto close and redirect after 2 seconds
+            setTimeout(() => {
+                closeNotification();
+            }, 2000);
+        }
+
+        function closeNotification() {
+            const overlay = document.querySelector('.notification-overlay');
+            if (overlay) {
+                overlay.style.animation = 'fadeOut 0.3s ease-out';
+                setTimeout(() => overlay.remove(), 300);
+            }
+        }
+
+        // Custom confirmation modal
+        function customConfirm(message, title = 'Confirm Action') {
+            return new Promise((resolve) => {
+                // Remove existing overlay if any
+                const existing = document.querySelector('.notification-overlay');
+                if (existing) existing.remove();
+
+                // Create overlay
+                const overlay = document.createElement('div');
+                overlay.className = 'notification-overlay';
+
+                // Create modal
+                const modal = document.createElement('div');
+                modal.className = 'confirm-modal';
+
+                modal.innerHTML = `
+                    <div class="confirm-icon">
+                        <i class="fas fa-question-circle"></i>
+                    </div>
+                    <div class="confirm-title">${title}</div>
+                    <div class="confirm-message">${message}</div>
+                    <div class="confirm-buttons">
+                        <button class="confirm-btn no" onclick="closeConfirm(false)">Cancel</button>
+                        <button class="confirm-btn yes" onclick="closeConfirm(true)">Confirm</button>
+                    </div>
+                `;
+
+                overlay.appendChild(modal);
+                document.body.appendChild(overlay);
+
+                // Store resolver
+                window.confirmResolver = resolve;
+            });
+        }
+
+        function closeConfirm(result) {
+            const overlay = document.querySelector('.notification-overlay');
+            if (overlay) {
+                overlay.style.animation = 'fadeOut 0.3s ease-out';
+                setTimeout(() => {
+                    overlay.remove();
+                    if (window.confirmResolver) {
+                        window.confirmResolver(result);
+                        window.confirmResolver = null;
+                    }
+                }, 300);
+            }
+        }
+    </script>
+
+    <script th:src="@{/js/client-nav.js}"></script>
+</body>
+</html>
