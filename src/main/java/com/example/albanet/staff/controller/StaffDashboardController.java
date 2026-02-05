@@ -38,8 +38,13 @@ public class StaffDashboardController {
         String team = getTeamFromRole(staff.getRole());
 
         if (team == null) {
-            // Admin or Support - redirect to admin dashboard
+            // Admin - redirect to admin dashboard
             return "redirect:/staff/dashboard";
+        }
+
+        // SUPPORT goes directly to chat
+        if (staff.getRole() == StaffRole.SUPPORT) {
+            return "redirect:/staff/chat";
         }
 
         // Get statistics
@@ -125,7 +130,8 @@ public class StaffDashboardController {
             case IT1 -> "T1";
             case IT2 -> "T2";
             case FINANCE -> "FINANCE";
-            default -> null; // ADMIN and SUPPORT don't have specific teams
+            case SUPPORT -> "SUPPORT";
+            default -> null; // ADMIN doesn't have specific team
         };
     }
 }

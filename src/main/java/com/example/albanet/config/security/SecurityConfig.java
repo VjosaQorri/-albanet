@@ -37,6 +37,7 @@ public class SecurityConfig {
                         .requestMatchers("/staff/login").permitAll()
                         .requestMatchers("/staff/dashboard", "/staff/create-staff").hasRole("ADMIN")
                         .requestMatchers("/staff/my-dashboard", "/staff/my-tickets/**", "/staff/tickets/*/claim").hasAnyRole("IT1", "IT2", "FINANCE", "SUPPORT")
+                        .requestMatchers("/staff/chat", "/staff/chat/**").hasAnyRole("ADMIN", "SUPPORT")
                         .requestMatchers("/staff/**").hasAnyRole("ADMIN", "SUPPORT", "FINANCE", "IT1", "IT2")
                 )
                 .authenticationProvider(staffAuthenticationProvider())
