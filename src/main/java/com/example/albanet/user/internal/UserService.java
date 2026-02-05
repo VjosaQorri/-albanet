@@ -1,14 +1,16 @@
 package com.example.albanet.user.internal;
 
+import com.example.albanet.user.api.UserApi;
 import com.example.albanet.user.api.dto.UserDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @Transactional
-public class UserService {
+public class UserService implements UserApi {
 
     private final UserRepository repository;
     private final UserMapper mapper;
@@ -18,22 +20,43 @@ public class UserService {
         this.mapper = mapper;
     }
 
-    public UserDto getById(Long id) {
-        UserEntity user = repository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("User not found"));
-        return mapper.toDto(user);
+    @Override
+    public Optional<UserDto> findById(Long id) {
+        return repository.findById(id).map(mapper::toDto);
     }
 
-    public UserEntity getByEmail(String email) {
-        return repository.findByEmail(email)
-                .orElseThrow(() -> new IllegalStateException("User not found"));
+    @Override
+    public Optional<UserDto> findByEmail(String email) {
+        return repository.findByEmail(email).map(mapper::toDto);
     }
 
-    public UserDto register(UserEntity user) {
-        if (repository.existsByEmail(user.getEmail())) {
+    @Override
+    public boolean existsByEmail(String email) {
+        return repository.existsByEmail(email);
+    }
+
+    @Override
+    public long count() {
+        return repository.count();
+    }
+
+    @Override
+    public UserDto createUser(String firstName, String lastName, String email, String encodedPassword,
+                              String phoneNumber, String street, String city, String postalCode, String country) {
+        if (repository.existsByEmail(email)) {
             throw new IllegalStateException("Email already in use");
         }
 
+        UserEntity user = new UserEntity();
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
+        user.setEmail(email);
+        user.setPassword(encodedPassword);
+        user.setPhoneNumber(phoneNumber);
+        user.setStreet(street);
+        user.setCity(city);
+        user.setPostalCode(postalCode);
+        user.setCountry(country);
         user.setActive(true);
         user.setCreatedAt(LocalDateTime.now());
 
@@ -41,5 +64,18 @@ public class UserService {
         return mapper.toDto(saved);
     }
 
-    // authentication logic will go here next
+    // ========== Internal methods (for use within user module only) ==========
+
+    public UserEntity getEntityByEmail(String email) {
+        return repository.findByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("User not found"));
+    }
+
+    public Optional<UserEntity> findEntityByEmail(String email) {
+        return repository.findByEmail(email);
+    }
+
+    public Optional<Long> getUserIdByEmail(String email) {
+        return repository.findByEmail(email).map(UserEntity::getId);
+    }
 }

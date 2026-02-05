@@ -297,12 +297,12 @@
         <div class="plans-grid">
             <div th:each="plan, iterStat : ${plans}" class="plan-card" th:classappend="${iterStat.index == 1} ? 'featured'">
                 <!-- Currently Subscribed Badge (Green) - Show on active plan -->
-                <span th:if="${activeSubscription != null && activeSubscription.planCode.name() == plan.code.name()}" class="subscribed-badge">
+                <span th:if="${activeSubscription != null && activeSubscription.planCode == plan.code}" class="subscribed-badge">
                     <i class="fas fa-check-circle"></i> Currently Subscribed
                 </span>
 
                 <!-- Pending Subscription Badge (Yellow) - Show on pending plan -->
-                <span th:if="${pendingSubscription != null && pendingSubscription.planCode.name() == plan.code.name()}" class="pending-badge">
+                <span th:if="${pendingSubscription != null && pendingSubscription.planCode == plan.code}" class="pending-badge">
                     <i class="fas fa-clock"></i> Pending Subscription
                 </span>
 
@@ -363,7 +363,7 @@
         });
 
         function updateButtonText(btn, planCode, currentPlan, category) {
-            const pendingPlanCode = /*[[${pendingSubscription != null ? pendingSubscription.planCode.name() : ''}]]*/ '';
+            const pendingPlanCode = /*[[${pendingSubscription != null ? pendingSubscription.planCode : ''}]]*/ '';
 
             if (!currentPlan) {
                 // No subscription at all
@@ -419,7 +419,7 @@
 
             const planCode = btn.getAttribute('data-plan');
             const currentPlan = btn.getAttribute('data-current-plan');
-            const pendingPlanCode = /*[[${pendingSubscription != null ? pendingSubscription.planCode.name() : ''}]]*/ '';
+            const pendingPlanCode = /*[[${pendingSubscription != null ? pendingSubscription.planCode : ''}]]*/ '';
             const pendingPlanName = /*[[${pendingPlanName}]]*/ '';
             const activeDurationBtn = document.querySelector(`.duration-btn[data-plan="${planCode}"].active`);
             const duration = activeDurationBtn ? activeDurationBtn.getAttribute('data-duration') : 1;

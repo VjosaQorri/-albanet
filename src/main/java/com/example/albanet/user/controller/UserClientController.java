@@ -1,11 +1,10 @@
-package com.example.albanet.client.controller;
+package com.example.albanet.user.controller;
 
-import com.example.albanet.catalog.internal.enums.CatalogCode;
-import com.example.albanet.subscription.internal.SubscriptionPlanEntity;
-import com.example.albanet.subscription.internal.SubscriptionPlanService;
-import com.example.albanet.subscription.internal.UserSubscriptionEntity;
+import com.example.albanet.subscription.api.SubscriptionApi;
+import com.example.albanet.subscription.api.dto.SubscriptionPlanDto;
+import com.example.albanet.subscription.api.dto.UserSubscriptionDto;
 import com.example.albanet.user.internal.UserEntity;
-import com.example.albanet.user.internal.UserRepository;
+import com.example.albanet.user.internal.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -15,15 +14,19 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Controller for client/user-facing views (home, plans, subscriptions, profile).
+ * Consolidates the former "client" module functionality.
+ */
 @Controller
-public class ClientController {
+public class UserClientController {
 
-    private final UserRepository userRepository;
-    private final SubscriptionPlanService subscriptionPlanService;
+    private final UserService userService;
+    private final SubscriptionApi subscriptionApi;
 
-    public ClientController(UserRepository userRepository, SubscriptionPlanService subscriptionPlanService) {
-        this.userRepository = userRepository;
-        this.subscriptionPlanService = subscriptionPlanService;
+    public UserClientController(UserService userService, SubscriptionApi subscriptionApi) {
+        this.userService = userService;
+        this.subscriptionApi = subscriptionApi;
     }
 
     /**
@@ -36,7 +39,7 @@ public class ClientController {
             return;
         }
 
-        userRepository.findByEmail(authentication.getName())
+        userService.findEntityByEmail(authentication.getName())
                 .ifPresentOrElse(user -> {
                     model.addAttribute("userName", user.getFirstName() + " " + user.getLastName());
                     model.addAttribute("userEmail", user.getEmail());
@@ -56,21 +59,21 @@ public class ClientController {
     @GetMapping("/tv")
     public String tv(Authentication authentication, Model model) {
         addUserToModel(authentication, model);
-        List<SubscriptionPlanEntity> plans = subscriptionPlanService.getPlansByCategory("TV");
+        List<SubscriptionPlanDto> plans = subscriptionApi.getPlansByCategory("TV");
         model.addAttribute("plans", plans);
 
         // Check if user has active TV subscription
         if (authentication != null && authentication.isAuthenticated()) {
             String email = authentication.getName();
-            Optional<UserEntity> userOpt = userRepository.findByEmail(email);
+            Optional<UserEntity> userOpt = userService.findEntityByEmail(email);
             if (userOpt.isPresent()) {
                 Long userId = userOpt.get().getId();
-                UserSubscriptionEntity activeSubscription = subscriptionPlanService.getActiveSubscriptionByCategory(userId, "TV");
-                UserSubscriptionEntity pendingSubscription = subscriptionPlanService.getPendingSubscriptionByCategory(userId, "TV");
+                UserSubscriptionDto activeSubscription = subscriptionApi.getActiveSubscriptionByCategory(userId, "TV");
+                UserSubscriptionDto pendingSubscription = subscriptionApi.getPendingSubscriptionByCategory(userId, "TV");
 
                 if (activeSubscription != null) {
                     model.addAttribute("activeSubscription", activeSubscription);
-                    model.addAttribute("currentPlanCode", activeSubscription.getPlanCode().name());
+                    model.addAttribute("currentPlanCode", activeSubscription.getPlanCode());
                 }
                 if (pendingSubscription != null) {
                     model.addAttribute("pendingSubscription", pendingSubscription);
@@ -86,17 +89,17 @@ public class ClientController {
     @GetMapping("/mobile")
     public String mobile(Authentication authentication, Model model) {
         addUserToModel(authentication, model);
-        List<SubscriptionPlanEntity> plans = subscriptionPlanService.getPlansByCategory("MOBILE");
+        List<SubscriptionPlanDto> plans = subscriptionApi.getPlansByCategory("MOBILE");
         model.addAttribute("plans", plans);
 
         // Check if user has active Mobile subscription
         if (authentication != null && authentication.isAuthenticated()) {
             String email = authentication.getName();
-            Optional<UserEntity> userOpt = userRepository.findByEmail(email);
+            Optional<UserEntity> userOpt = userService.findEntityByEmail(email);
             if (userOpt.isPresent()) {
                 Long userId = userOpt.get().getId();
-                UserSubscriptionEntity activeSubscription = subscriptionPlanService.getActiveSubscriptionByCategory(userId, "MOBILE");
-                UserSubscriptionEntity pendingSubscription = subscriptionPlanService.getPendingSubscriptionByCategory(userId, "MOBILE");
+                UserSubscriptionDto activeSubscription = subscriptionApi.getActiveSubscriptionByCategory(userId, "MOBILE");
+                UserSubscriptionDto pendingSubscription = subscriptionApi.getPendingSubscriptionByCategory(userId, "MOBILE");
 
                 if (activeSubscription != null) {
                     model.addAttribute("activeSubscription", activeSubscription);
@@ -113,21 +116,21 @@ public class ClientController {
     @GetMapping("/internet")
     public String internet(Authentication authentication, Model model) {
         addUserToModel(authentication, model);
-        List<SubscriptionPlanEntity> plans = subscriptionPlanService.getPlansByCategory("INTERNET");
+        List<SubscriptionPlanDto> plans = subscriptionApi.getPlansByCategory("INTERNET");
         model.addAttribute("plans", plans);
 
         // Check if user has active Internet subscription
         if (authentication != null && authentication.isAuthenticated()) {
             String email = authentication.getName();
-            Optional<UserEntity> userOpt = userRepository.findByEmail(email);
+            Optional<UserEntity> userOpt = userService.findEntityByEmail(email);
             if (userOpt.isPresent()) {
                 Long userId = userOpt.get().getId();
-                UserSubscriptionEntity activeSubscription = subscriptionPlanService.getActiveSubscriptionByCategory(userId, "INTERNET");
-                UserSubscriptionEntity pendingSubscription = subscriptionPlanService.getPendingSubscriptionByCategory(userId, "INTERNET");
+                UserSubscriptionDto activeSubscription = subscriptionApi.getActiveSubscriptionByCategory(userId, "INTERNET");
+                UserSubscriptionDto pendingSubscription = subscriptionApi.getPendingSubscriptionByCategory(userId, "INTERNET");
 
                 if (activeSubscription != null) {
                     model.addAttribute("activeSubscription", activeSubscription);
-                    model.addAttribute("currentPlanCode", activeSubscription.getPlanCode().name());
+                    model.addAttribute("currentPlanCode", activeSubscription.getPlanCode());
                 }
                 if (pendingSubscription != null) {
                     model.addAttribute("pendingSubscription", pendingSubscription);
@@ -148,15 +151,13 @@ public class ClientController {
             Authentication authentication) {
         try {
             String email = authentication.getName();
-            Optional<UserEntity> userOpt = userRepository.findByEmail(email);
+            Optional<UserEntity> userOpt = userService.findEntityByEmail(email);
             if (userOpt.isEmpty()) {
                 return ResponseEntity.badRequest().body("User not found");
             }
 
             Long userId = userOpt.get().getId();
-            CatalogCode code = CatalogCode.valueOf(planCode);
-
-            subscriptionPlanService.subscribe(userId, code, duration);
+            subscriptionApi.subscribe(userId, planCode, duration);
             return ResponseEntity.ok("Subscription successful!");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error: " + e.getMessage());
@@ -175,10 +176,10 @@ public class ClientController {
 
         if (authentication != null && authentication.isAuthenticated()) {
             String email = authentication.getName();
-            Optional<UserEntity> userOpt = userRepository.findByEmail(email);
+            Optional<UserEntity> userOpt = userService.findEntityByEmail(email);
             if (userOpt.isPresent()) {
                 Long userId = userOpt.get().getId();
-                List<UserSubscriptionEntity> subscriptions = subscriptionPlanService.getUserSubscriptions(userId);
+                List<UserSubscriptionDto> subscriptions = subscriptionApi.getUserSubscriptions(userId);
                 model.addAttribute("subscriptions", subscriptions);
             }
         }
@@ -190,14 +191,14 @@ public class ClientController {
     public ResponseEntity<String> cancelSubscription(@PathVariable Long subscriptionId, Authentication authentication) {
         try {
             String email = authentication.getName();
-            Optional<UserEntity> userOpt = userRepository.findByEmail(email);
+            Optional<UserEntity> userOpt = userService.findEntityByEmail(email);
 
             if (userOpt.isEmpty()) {
                 return ResponseEntity.status(403).body("User not found");
             }
 
             Long userId = userOpt.get().getId();
-            subscriptionPlanService.cancelSubscription(subscriptionId, userId);
+            subscriptionApi.cancelSubscription(subscriptionId, userId);
             return ResponseEntity.ok("Subscription cancelled successfully!");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error: " + e.getMessage());

@@ -1,6 +1,6 @@
 package com.example.albanet.subscription.internal;
 
-import com.example.albanet.catalog.internal.enums.CatalogCode;
+import com.example.albanet.subscription.internal.enums.CatalogCode;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

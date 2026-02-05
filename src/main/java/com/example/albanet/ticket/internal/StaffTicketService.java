@@ -2,8 +2,8 @@ package com.example.albanet.ticket.internal;
 
 import com.example.albanet.ticket.api.dto.TicketDetailsResponse;
 import com.example.albanet.ticket.internal.enums.TicketStatus;
-import com.example.albanet.user.internal.UserEntity;
-import com.example.albanet.user.internal.UserRepository;
+import com.example.albanet.user.api.UserApi;
+import com.example.albanet.user.api.dto.UserDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,12 +16,12 @@ public class StaffTicketService {
 
     private final TicketRepository ticketRepository;
     private final TicketMapper ticketMapper;
-    private final UserRepository userRepository;
+    private final UserApi userApi;
 
-    public StaffTicketService(TicketRepository ticketRepository, TicketMapper ticketMapper, UserRepository userRepository) {
+    public StaffTicketService(TicketRepository ticketRepository, TicketMapper ticketMapper, UserApi userApi) {
         this.ticketRepository = ticketRepository;
         this.ticketMapper = ticketMapper;
-        this.userRepository = userRepository;
+        this.userApi = userApi;
     }
 
     /**
@@ -157,9 +157,9 @@ public class StaffTicketService {
      * Enrich response with customer information
      */
     private void enrichWithCustomerInfo(TicketDetailsResponse response, Long customerId) {
-        Optional<UserEntity> customerOpt = userRepository.findById(customerId);
+        Optional<UserDto> customerOpt = userApi.findById(customerId);
         if (customerOpt.isPresent()) {
-            UserEntity customer = customerOpt.get();
+            UserDto customer = customerOpt.get();
             response.setCustomerName(customer.getFirstName() + " " + customer.getLastName());
             response.setCustomerEmail(customer.getEmail());
             response.setCustomerPhone(customer.getPhoneNumber());

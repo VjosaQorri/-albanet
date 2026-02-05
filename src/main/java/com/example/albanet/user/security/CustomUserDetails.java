@@ -51,6 +51,23 @@ public class CustomUserDetails implements UserDetails {
         return user.isActive();
     }
 
+    // Helper methods to avoid exposing UserEntity to other modules
+    public Long getUserId() {
+        return user.getId();
+    }
+
+    public String getFullName() {
+        return user.getFirstName() + " " + user.getLastName();
+    }
+
+    public String getEmail() {
+        return user.getEmail();
+    }
+
+    /**
+     * @deprecated Use getUserId(), getFullName(), getEmail() instead to avoid exposing internal entity
+     */
+    @Deprecated
     public UserEntity getUser() {
         return user;
     }

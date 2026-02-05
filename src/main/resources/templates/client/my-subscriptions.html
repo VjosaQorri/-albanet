@@ -317,8 +317,8 @@
                         <span class="category" th:text="${sub.category}">TV</span>
                     </div>
                     <span class="status-badge"
-                          th:classappend="${sub.status.name() == 'ACTIVE'} ? 'status-active' : (${sub.status.name() == 'PENDING'} ? 'status-pending' : (${sub.status.name() == 'EXPIRED'} ? 'status-expired' : 'status-cancelled'))"
-                          th:text="${sub.status.name()}">ACTIVE</span>
+                          th:classappend="${sub.status == 'ACTIVE'} ? 'status-active' : (${sub.status == 'PENDING'} ? 'status-pending' : (${sub.status == 'EXPIRED'} ? 'status-expired' : 'status-cancelled'))"
+                          th:text="${sub.status}">ACTIVE</span>
                 </div>
 
                 <div class="card-body">
@@ -349,7 +349,7 @@
                 </div>
 
                 <!-- Cancel Button for PENDING subscriptions -->
-                <div th:if="${sub.status.name() == 'PENDING'}" class="card-actions">
+                <div th:if="${sub.status == 'PENDING'}" class="card-actions">
                     <button class="cancel-btn" th:attr="data-subscription-id=${sub.id},data-plan-name=${sub.planName}" onclick="cancelSubscription(this)">
                         <i class="fas fa-times-circle"></i> Cancel Subscription
                     </button>

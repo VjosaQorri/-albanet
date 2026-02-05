@@ -1,14 +1,10 @@
 package com.example.albanet.config;
 
-import com.example.albanet.staff.internal.StaffEntity;
-import com.example.albanet.staff.internal.StaffRepository;
-import com.example.albanet.staff.internal.enums.StaffRole;
+import com.example.albanet.staff.api.StaffApi;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
-import java.time.LocalDateTime;
 
 /**
  * Initializes the first admin user if none exists.
@@ -18,23 +14,19 @@ import java.time.LocalDateTime;
 public class InitialAdminConfig {
 
     @Bean
-    public CommandLineRunner createInitialAdmin(StaffRepository staffRepository,
+    public CommandLineRunner createInitialAdmin(StaffApi staffApi,
                                                 PasswordEncoder passwordEncoder) {
         return args -> {
             // Check if any admin exists
-            if (staffRepository.count() == 0) {
-                StaffEntity admin = new StaffEntity();
-                admin.setFirstName("System");
-                admin.setLastName("Administrator");
-                admin.setEmail("admin@albanet.com");
-                admin.setPassword(passwordEncoder.encode("admin123")); // Change after first login!
-                admin.setPhoneNumber("+355 00 000 0000");
-                admin.setEmployeeNumber("EMP-000001");
-                admin.setRole(StaffRole.ADMIN);
-                admin.setHiredAt(LocalDateTime.now());
-                admin.setActive(true);
-
-                staffRepository.save(admin);
+            if (staffApi.count() == 0) {
+                staffApi.createAdmin(
+                    "System",
+                    "Administrator",
+                    "admin@albanet.com",
+                    passwordEncoder.encode("admin123"), // Change after first login!
+                    "+355 00 000 0000",
+                    "EMP-000001"
+                );
 
                 System.out.println("\n========================================");
                 System.out.println("✅ INITIAL ADMIN USER CREATED");
@@ -44,7 +36,7 @@ public class InitialAdminConfig {
                 System.out.println("⚠️  CHANGE PASSWORD AFTER FIRST LOGIN!");
                 System.out.println("========================================\n");
             } else {
-                System.out.println("✅ Staff database already initialized (" + staffRepository.count() + " staff members)");
+                System.out.println("✅ Staff database already initialized (" + staffApi.count() + " staff members)");
             }
         };
     }

@@ -1,10 +1,10 @@
 package com.example.albanet.ticket.internal;
 
-import com.example.albanet.staff.internal.StaffService;
+import com.example.albanet.staff.api.StaffApi;
 import com.example.albanet.ticket.api.dto.TicketDetailsResponse;
 import com.example.albanet.ticket.internal.enums.TicketStatus;
-import com.example.albanet.user.internal.UserEntity;
-import com.example.albanet.user.internal.UserRepository;
+import com.example.albanet.user.api.UserApi;
+import com.example.albanet.user.api.dto.UserDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,15 +17,15 @@ public class AdminTicketService {
 
     private final TicketRepository ticketRepository;
     private final TicketMapper ticketMapper;
-    private final UserRepository userRepository;
-    private final StaffService staffService;
+    private final UserApi userApi;
+    private final StaffApi staffApi;
 
     public AdminTicketService(TicketRepository ticketRepository, TicketMapper ticketMapper,
-                             UserRepository userRepository, StaffService staffService) {
+                             UserApi userApi, StaffApi staffApi) {
         this.ticketRepository = ticketRepository;
         this.ticketMapper = ticketMapper;
-        this.userRepository = userRepository;
-        this.staffService = staffService;
+        this.userApi = userApi;
+        this.staffApi = staffApi;
     }
 
     /**
@@ -75,9 +75,8 @@ public class AdminTicketService {
                     // Replace email with staff name if assigned
                     if (ticket.getAssignedTo() != null && !ticket.getAssignedTo().isEmpty()) {
                         try {
-                            com.example.albanet.staff.internal.StaffEntity staff =
-                                staffService.getActiveStaffByEmail(ticket.getAssignedTo());
-                            response.setAssignedTo(staff.getFirstName() + " " + staff.getLastName());
+                            String staffName = staffApi.getStaffFullNameByEmail(ticket.getAssignedTo());
+                            response.setAssignedTo(staffName);
                         } catch (Exception e) {
                             // If staff not found, keep email as fallback
                         }
@@ -97,9 +96,9 @@ public class AdminTicketService {
         TicketDetailsResponse response = ticketMapper.toDetailsResponse(ticket);
 
         // Fetch and add customer information
-        Optional<UserEntity> customerOpt = userRepository.findById(ticket.getCustomerId());
+        Optional<UserDto> customerOpt = userApi.findById(ticket.getCustomerId());
         if (customerOpt.isPresent()) {
-            UserEntity customer = customerOpt.get();
+            UserDto customer = customerOpt.get();
             response.setCustomerName(customer.getFirstName() + " " + customer.getLastName());
             response.setCustomerEmail(customer.getEmail());
             response.setCustomerPhone(customer.getPhoneNumber());
@@ -108,9 +107,8 @@ public class AdminTicketService {
         // Replace email with staff name if assigned
         if (ticket.getAssignedTo() != null && !ticket.getAssignedTo().isEmpty()) {
             try {
-                com.example.albanet.staff.internal.StaffEntity staff =
-                    staffService.getActiveStaffByEmail(ticket.getAssignedTo());
-                response.setAssignedTo(staff.getFirstName() + " " + staff.getLastName());
+                String staffName = staffApi.getStaffFullNameByEmail(ticket.getAssignedTo());
+                response.setAssignedTo(staffName);
             } catch (Exception e) {
                 // If staff not found, keep email as fallback
             }

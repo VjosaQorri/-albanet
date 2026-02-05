@@ -1,6 +1,5 @@
 package com.example.albanet.chat;
 
-import com.example.albanet.user.internal.UserEntity;
 import com.example.albanet.user.security.CustomUserDetails;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -31,12 +30,11 @@ public class ChatController {
         }
 
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        UserEntity user = userDetails.getUser();
 
         ChatSession session = chatService.getOrCreateSession(
-            user.getId(),
-            user.getFirstName() + " " + user.getLastName(),
-            user.getEmail()
+            userDetails.getUserId(),
+            userDetails.getFullName(),
+            userDetails.getUsername()
         );
 
         Map<String, Object> response = new HashMap<>();
@@ -57,7 +55,7 @@ public class ChatController {
         }
 
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        Optional<ChatSession> session = chatService.getActiveSessionForCustomer(userDetails.getUser().getId());
+        Optional<ChatSession> session = chatService.getActiveSessionForCustomer(userDetails.getUserId());
 
         if (session.isEmpty()) {
             return ResponseEntity.ok(Map.of("hasSession", false));
@@ -84,7 +82,16 @@ public class ChatController {
             @RequestParam String senderName) {
 
         try {
+             System.out.println("=== Chat Message Received ===");
+            System.out.println("SessionId: " + sessionId);
+            System.out.println("SenderId: " + senderId);
+            System.out.println("SenderName: " + senderName);
+            System.out.println("SenderType: " + senderType);
+            System.out.println("Content: " + content);
+
             ChatMessage message = chatService.sendMessage(sessionId, senderId, senderName, senderType, content);
+
+            System.out.println("Message saved with ID: " + message.getId());
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -93,6 +100,8 @@ public class ChatController {
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            System.err.println("Error sending message: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }

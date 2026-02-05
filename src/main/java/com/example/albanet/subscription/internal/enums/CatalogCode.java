@@ -1,4 +1,4 @@
-package com.example.albanet.catalog.internal.enums;
+package com.example.albanet.subscription.internal.enums;
 
 public enum CatalogCode {
     // TV

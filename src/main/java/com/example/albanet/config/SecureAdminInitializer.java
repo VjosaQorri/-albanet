@@ -1,16 +1,12 @@
 package com.example.albanet.config;
 
-import com.example.albanet.staff.internal.StaffEntity;
-import com.example.albanet.staff.internal.StaffRepository;
-import com.example.albanet.staff.internal.enums.StaffRole;
+import com.example.albanet.staff.api.StaffApi;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
-import java.time.LocalDateTime;
 
 /**
  * Secure way to create initial admin using environment variables
@@ -29,7 +25,7 @@ public class SecureAdminInitializer {
     private String adminPassword;
 
     @Bean
-    public CommandLineRunner createSecureAdmin(StaffRepository staffRepository,
+    public CommandLineRunner createSecureAdmin(StaffApi staffApi,
                                                PasswordEncoder passwordEncoder) {
         return args -> {
             if (adminPassword.isEmpty()) {
@@ -37,19 +33,15 @@ public class SecureAdminInitializer {
                 return;
             }
 
-            if (!staffRepository.existsByEmail(adminEmail)) {
-                StaffEntity admin = new StaffEntity();
-                admin.setFirstName("System");
-                admin.setLastName("Administrator");
-                admin.setEmail(adminEmail);
-                admin.setPassword(passwordEncoder.encode(adminPassword));
-                admin.setPhoneNumber("+355 00 000 0000");
-                admin.setEmployeeNumber("EMP-000001");
-                admin.setRole(StaffRole.ADMIN);
-                admin.setHiredAt(LocalDateTime.now());
-                admin.setActive(true);
-
-                staffRepository.save(admin);
+            if (!staffApi.existsByEmail(adminEmail)) {
+                staffApi.createAdmin(
+                    "System",
+                    "Administrator",
+                    adminEmail,
+                    passwordEncoder.encode(adminPassword),
+                    "+355 00 000 0000",
+                    "EMP-000001"
+                );
 
                 System.out.println("\n✅ Secure admin user created: " + adminEmail);
             }

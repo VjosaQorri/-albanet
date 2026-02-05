@@ -4,8 +4,8 @@ import com.example.albanet.ticket.api.dto.CreateClientTicketRequest;
 import com.example.albanet.ticket.internal.enums.TicketCategory;
 import com.example.albanet.ticket.internal.enums.TicketProblemType;
 import com.example.albanet.ticket.internal.enums.TicketStatus;
-import com.example.albanet.user.internal.UserEntity;
-import com.example.albanet.user.internal.UserRepository;
+import com.example.albanet.user.api.UserApi;
+import com.example.albanet.user.api.dto.UserDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -20,13 +20,13 @@ public class ClientTicketService {
     private static final Logger logger = LoggerFactory.getLogger(ClientTicketService.class);
 
     private final TicketRepository ticketRepository;
-    private final UserRepository userRepository;
+    private final UserApi userApi;
     private final TicketSseController ticketSseController;
 
-    public ClientTicketService(TicketRepository ticketRepository, UserRepository userRepository,
+    public ClientTicketService(TicketRepository ticketRepository, UserApi userApi,
                                TicketSseController ticketSseController) {
         this.ticketRepository = ticketRepository;
-        this.userRepository = userRepository;
+        this.userApi = userApi;
         this.ticketSseController = ticketSseController;
     }
 
@@ -35,7 +35,7 @@ public class ClientTicketService {
      */
     public TicketEntity createTicket(CreateClientTicketRequest request, Long userId) {
         // Validate user exists
-        UserEntity user = userRepository.findById(userId)
+        UserDto user = userApi.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
 
         // Parse category

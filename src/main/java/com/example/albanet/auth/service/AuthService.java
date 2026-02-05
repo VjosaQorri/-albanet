@@ -2,24 +2,23 @@ package com.example.albanet.auth.service;
 
 import com.example.albanet.auth.dto.LoginRequest;
 import com.example.albanet.auth.dto.RegisterRequest;
-import com.example.albanet.user.internal.UserEntity;
-import com.example.albanet.user.internal.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.albanet.user.api.UserApi;
+import com.example.albanet.user.api.dto.UserDto;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
 
 @Service
 @Transactional
 public class AuthService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserApi userApi;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    public AuthService(UserApi userApi, PasswordEncoder passwordEncoder) {
+        this.userApi = userApi;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     public String login(LoginRequest request) {
         // placeholder: in a real app validate credentials and return a JWT or session id
@@ -31,27 +30,23 @@ public class AuthService {
         return 1L;
     }
 
-    public UserEntity registerUser(RegisterRequest request) {
+    public UserDto registerUser(RegisterRequest request) {
         // Check if user already exists
-        if (userRepository.existsByEmail(request.getEmail())) {
+        if (userApi.existsByEmail(request.getEmail())) {
             throw new RuntimeException("An account with this email already exists");
         }
 
-        // Create new user entity
-        UserEntity user = new UserEntity();
-        user.setFirstName(request.getFirstName());
-        user.setLastName(request.getLastName());
-        user.setEmail(request.getEmail());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setPhoneNumber(request.getPhoneNumber());
-        user.setStreet(request.getStreet());
-        user.setCity(request.getCity());
-        user.setPostalCode(request.getPostalCode());
-        user.setCountry(request.getCountry());
-        user.setActive(true);
-        user.setCreatedAt(LocalDateTime.now());
-
-        // Save and return the user
-        return userRepository.save(user);
+        // Create new user via API
+        return userApi.createUser(
+                request.getFirstName(),
+                request.getLastName(),
+                request.getEmail(),
+                passwordEncoder.encode(request.getPassword()),
+                request.getPhoneNumber(),
+                request.getStreet(),
+                request.getCity(),
+                request.getPostalCode(),
+                request.getCountry()
+        );
     }
 }

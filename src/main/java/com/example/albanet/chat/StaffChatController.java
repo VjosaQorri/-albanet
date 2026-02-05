@@ -1,7 +1,7 @@
 package com.example.albanet.chat;
 
-import com.example.albanet.staff.internal.StaffEntity;
-import com.example.albanet.staff.internal.StaffService;
+import com.example.albanet.staff.api.StaffApi;
+import com.example.albanet.staff.api.dto.StaffDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -16,11 +16,11 @@ import java.util.Map;
 public class StaffChatController {
 
     private final ChatService chatService;
-    private final StaffService staffService;
+    private final StaffApi staffApi;
 
-    public StaffChatController(ChatService chatService, StaffService staffService) {
+    public StaffChatController(ChatService chatService, StaffApi staffApi) {
         this.chatService = chatService;
-        this.staffService = staffService;
+        this.staffApi = staffApi;
     }
 
     /**
@@ -63,7 +63,7 @@ public class StaffChatController {
 
         try {
             String email = authentication.getName();
-            StaffEntity staff = staffService.getActiveStaffByEmail(email);
+            StaffDto staff = staffApi.getActiveStaffByEmail(email);
 
             ChatSession session = chatService.joinSession(
                 sessionId,
@@ -93,7 +93,7 @@ public class StaffChatController {
 
         try {
             String email = authentication.getName();
-            StaffEntity staff = staffService.getActiveStaffByEmail(email);
+            StaffDto staff = staffApi.getActiveStaffByEmail(email);
 
             ChatMessage message = chatService.sendMessage(
                 sessionId,

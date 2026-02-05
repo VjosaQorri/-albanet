@@ -1,22 +1,20 @@
 package com.example.albanet.config;
 
-import com.example.albanet.user.internal.UserEntity;
-import com.example.albanet.user.internal.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.albanet.user.api.UserApi;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
-
 @Component
 public class DataInitializer implements CommandLineRunner {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserApi userApi;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    public DataInitializer(UserApi userApi, PasswordEncoder passwordEncoder) {
+        this.userApi = userApi;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @Override
     public void run(String... args) throws Exception {
@@ -38,22 +36,19 @@ public class DataInitializer implements CommandLineRunner {
         System.out.println("========================================\n");
 
         // Check if database is empty
-        if (userRepository.count() == 0) {
-            // Create a dummy user for testing
-            UserEntity dummyUser = new UserEntity();
-            dummyUser.setFirstName("Demo");
-            dummyUser.setLastName("User");
-            dummyUser.setEmail("demo@albanet.com");
-            dummyUser.setPassword(passwordEncoder.encode("password123"));
-            dummyUser.setPhoneNumber("+355 69 123 4567");
-            dummyUser.setStreet("Rruga e Kavajes 123");
-            dummyUser.setCity("Tirana");
-            dummyUser.setPostalCode("1001");
-            dummyUser.setCountry("Albania");
-            dummyUser.setActive(true);
-            dummyUser.setCreatedAt(LocalDateTime.now());
-
-            userRepository.save(dummyUser);
+        if (userApi.count() == 0) {
+            // Create a dummy user for testing via API
+            userApi.createUser(
+                "Demo",
+                "User",
+                "demo@albanet.com",
+                passwordEncoder.encode("password123"),
+                "+355 69 123 4567",
+                "Rruga e Kavajes 123",
+                "Tirana",
+                "1001",
+                "Albania"
+            );
 
             System.out.println("✅ DUMMY USER INSERTED INTO DIRECT POSTGRESQL DATABASE:");
             System.out.println("   Email: demo@albanet.com");
@@ -62,7 +57,7 @@ public class DataInitializer implements CommandLineRunner {
             System.out.println("   Address: Rruga e Kavajes 123, Tirana 1001, Albania");
             System.out.println("   Phone: +355 69 123 4567");
         } else {
-            System.out.println("✅ DIRECT POSTGRESQL DATABASE ALREADY HAS " + userRepository.count() + " USER(S)");
+            System.out.println("✅ DIRECT POSTGRESQL DATABASE ALREADY HAS " + userApi.count() + " USER(S)");
         }
     }
 }

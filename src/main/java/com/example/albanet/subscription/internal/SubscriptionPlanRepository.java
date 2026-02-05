@@ -1,6 +1,6 @@
 package com.example.albanet.subscription.internal;
 
-import com.example.albanet.catalog.internal.enums.CatalogCode;
+import com.example.albanet.subscription.internal.enums.CatalogCode;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

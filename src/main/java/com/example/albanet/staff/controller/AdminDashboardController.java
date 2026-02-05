@@ -1,10 +1,10 @@
 package com.example.albanet.staff.controller;
 
+import com.example.albanet.staff.api.StaffApi;
 import com.example.albanet.staff.api.dto.CreateStaffRequest;
 import com.example.albanet.staff.api.dto.StaffDto;
-import com.example.albanet.staff.internal.StaffService;
+import com.example.albanet.ticket.api.TicketApi;
 import com.example.albanet.ticket.api.dto.TicketDetailsResponse;
-import com.example.albanet.ticket.internal.AdminTicketService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -12,18 +12,19 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Controller
 @RequestMapping("/staff")
 public class AdminDashboardController {
 
-    private final AdminTicketService adminTicketService;
-    private final StaffService staffService;
+    private final TicketApi ticketApi;
+    private final StaffApi staffApi;
 
-    public AdminDashboardController(AdminTicketService adminTicketService, StaffService staffService) {
-        this.adminTicketService = adminTicketService;
-        this.staffService = staffService;
+    public AdminDashboardController(TicketApi ticketApi, StaffApi staffApi) {
+        this.ticketApi = ticketApi;
+        this.staffApi = staffApi;
     }
 
     @GetMapping("/dashboard")
@@ -33,11 +34,11 @@ public class AdminDashboardController {
             Model model) {
 
         // Get ticket stats for the dashboard summary
-        AdminTicketService.TicketStats stats = adminTicketService.getTicketStats();
+        TicketApi.TicketStats stats = ticketApi.getTicketStats();
         model.addAttribute("stats", stats);
 
         // Get filtered tickets
-        var tickets = adminTicketService.getFilteredTickets(team, status);
+        var tickets = ticketApi.getFilteredTickets(team, status);
         model.addAttribute("tickets", tickets);
 
         // Add current filters to model for UI state
@@ -50,51 +51,27 @@ public class AdminDashboardController {
     @GetMapping("/tickets/{id}")
     @ResponseBody
     public ResponseEntity<TicketDetailsResponse> getTicketDetails(@PathVariable Long id) {
-        TicketDetailsResponse ticket = adminTicketService.getTicketById(id);
+        TicketDetailsResponse ticket = ticketApi.getTicketById(id);
         return ResponseEntity.ok(ticket);
     }
 
     @GetMapping("/staff-by-team/{team}")
     @ResponseBody
     public ResponseEntity<List<StaffDto>> getStaffByTeam(@PathVariable String team) {
-        // Map team to roles
-        List<StaffDto> staffList = new java.util.ArrayList<>();
+        List<StaffDto> staffList = new ArrayList<>();
 
         if ("T1".equals(team)) {
-            staffList.addAll(staffService.getActiveStaffByRole(com.example.albanet.staff.internal.enums.StaffRole.IT1)
-                .stream()
-                .map(this::toStaffDto)
-                .collect(java.util.stream.Collectors.toList()));
+            staffList.addAll(staffApi.getActiveStaffByRole("IT1"));
         } else if ("T2".equals(team)) {
-            staffList.addAll(staffService.getActiveStaffByRole(com.example.albanet.staff.internal.enums.StaffRole.IT2)
-                .stream()
-                .map(this::toStaffDto)
-                .collect(java.util.stream.Collectors.toList()));
+            staffList.addAll(staffApi.getActiveStaffByRole("IT2"));
         } else if ("FINANCE".equals(team)) {
-            staffList.addAll(staffService.getActiveStaffByRole(com.example.albanet.staff.internal.enums.StaffRole.FINANCE)
-                .stream()
-                .map(this::toStaffDto)
-                .collect(java.util.stream.Collectors.toList()));
+            staffList.addAll(staffApi.getActiveStaffByRole("FINANCE"));
         }
 
-        // Also add SUPPORT who can handle any team (but not ADMIN - admins don't finish tickets)
-        staffList.addAll(staffService.getActiveStaffByRole(com.example.albanet.staff.internal.enums.StaffRole.SUPPORT)
-            .stream()
-            .map(this::toStaffDto)
-            .collect(java.util.stream.Collectors.toList()));
+        // Also add SUPPORT who can handle any team
+        staffList.addAll(staffApi.getActiveStaffByRole("SUPPORT"));
 
         return ResponseEntity.ok(staffList);
-    }
-
-    private StaffDto toStaffDto(com.example.albanet.staff.internal.StaffEntity staff) {
-        StaffDto dto = new StaffDto();
-        dto.setId(staff.getId());
-        dto.setFirstName(staff.getFirstName());
-        dto.setLastName(staff.getLastName());
-        dto.setEmail(staff.getEmail());
-        dto.setEmployeeNumber(staff.getEmployeeNumber());
-        dto.setRole(staff.getRole().name());
-        return dto;
     }
 
     @PostMapping("/tickets/{id}/reassign")
@@ -104,7 +81,7 @@ public class AdminDashboardController {
             @RequestParam String assignedTo,
             Authentication authentication) {
         String updatedBy = authentication.getName();
-        adminTicketService.reassignTicket(id, assignedTo, updatedBy);
+        ticketApi.reassignTicket(id, assignedTo, updatedBy);
         return ResponseEntity.ok("Ticket reassigned successfully");
     }
 
@@ -115,7 +92,7 @@ public class AdminDashboardController {
             @RequestParam String team,
             Authentication authentication) {
         String updatedBy = authentication.getName();
-        adminTicketService.escalateTicket(id, team, updatedBy);
+        ticketApi.escalateTicket(id, team, updatedBy);
         return ResponseEntity.ok("Ticket escalated successfully");
     }
 
@@ -127,12 +104,9 @@ public class AdminDashboardController {
             Authentication authentication) {
         try {
             String updatedBy = authentication.getName();
-            System.out.println("Changing priority for ticket " + id + " to " + priority + " by " + updatedBy);
-            adminTicketService.changePriority(id, priority, updatedBy);
+            ticketApi.changePriority(id, priority, updatedBy);
             return ResponseEntity.ok("Priority changed successfully");
         } catch (Exception e) {
-            System.err.println("Error changing priority: " + e.getMessage());
-            e.printStackTrace();
             return ResponseEntity.status(500).body("Error: " + e.getMessage());
         }
     }
@@ -145,12 +119,9 @@ public class AdminDashboardController {
             Authentication authentication) {
         try {
             String updatedBy = authentication.getName();
-            System.out.println("Updating status for ticket " + id + " to " + status + " by " + updatedBy);
-            adminTicketService.updateStatus(id, status, updatedBy);
+            ticketApi.updateStatus(id, status, updatedBy);
             return ResponseEntity.ok("Status updated successfully");
         } catch (Exception e) {
-            System.err.println("Error updating status: " + e.getMessage());
-            e.printStackTrace();
             return ResponseEntity.status(500).body("Error: " + e.getMessage());
         }
     }
@@ -165,7 +136,7 @@ public class AdminDashboardController {
             @ModelAttribute CreateStaffRequest request,
             RedirectAttributes redirectAttributes) {
         try {
-            staffService.createStaff(request);
+            staffApi.createStaff(request);
             redirectAttributes.addFlashAttribute("success",
                 "Staff member created successfully! Email: " + request.getEmail());
             return "redirect:/staff/create-staff";

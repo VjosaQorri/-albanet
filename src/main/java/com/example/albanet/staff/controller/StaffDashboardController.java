@@ -3,8 +3,8 @@ package com.example.albanet.staff.controller;
 import com.example.albanet.staff.internal.StaffEntity;
 import com.example.albanet.staff.internal.StaffService;
 import com.example.albanet.staff.internal.enums.StaffRole;
+import com.example.albanet.ticket.api.TicketApi;
 import com.example.albanet.ticket.api.dto.TicketDetailsResponse;
-import com.example.albanet.ticket.internal.StaffTicketService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -17,11 +17,11 @@ import java.util.List;
 @RequestMapping("/staff")
 public class StaffDashboardController {
 
-    private final StaffTicketService staffTicketService;
+    private final TicketApi ticketApi;
     private final StaffService staffService;
 
-    public StaffDashboardController(StaffTicketService staffTicketService, StaffService staffService) {
-        this.staffTicketService = staffTicketService;
+    public StaffDashboardController(TicketApi ticketApi, StaffService staffService) {
+        this.ticketApi = ticketApi;
         this.staffService = staffService;
     }
 
@@ -48,16 +48,16 @@ public class StaffDashboardController {
         }
 
         // Get statistics
-        StaffTicketService.StaffStats stats = staffTicketService.getStaffStats(email);
+        TicketApi.StaffStats stats = ticketApi.getStaffStats(email);
         model.addAttribute("stats", stats);
 
         // Get tickets based on view
         List<TicketDetailsResponse> tickets;
         if ("my-tickets".equals(view)) {
-            tickets = staffTicketService.getMyTickets(email);
+            tickets = ticketApi.getMyTickets(email);
         } else {
             // Default: unassigned tickets
-            tickets = staffTicketService.getUnassignedTicketsByTeam(team);
+            tickets = ticketApi.getUnassignedTicketsByTeam(team);
         }
 
         model.addAttribute("tickets", tickets);
@@ -74,7 +74,7 @@ public class StaffDashboardController {
     public ResponseEntity<TicketDetailsResponse> getMyTicketDetails(
             @PathVariable Long id,
             Authentication authentication) {
-        TicketDetailsResponse ticket = staffTicketService.getTicketById(id);
+        TicketDetailsResponse ticket = ticketApi.getTicketById(id);
         return ResponseEntity.ok(ticket);
     }
 
@@ -85,7 +85,7 @@ public class StaffDashboardController {
             Authentication authentication) {
         try {
             String email = authentication.getName();
-            staffTicketService.claimTicket(id, email);
+            ticketApi.claimTicket(id, email);
             return ResponseEntity.ok("Ticket claimed successfully");
         } catch (Exception e) {
             return ResponseEntity.status(400).body("Error: " + e.getMessage());
@@ -100,7 +100,7 @@ public class StaffDashboardController {
             Authentication authentication) {
         try {
             String email = authentication.getName();
-            staffTicketService.updateTicketStatus(id, status, email);
+            ticketApi.updateTicketStatus(id, status, email);
             return ResponseEntity.ok("Status updated successfully");
         } catch (Exception e) {
             return ResponseEntity.status(400).body("Error: " + e.getMessage());
@@ -115,7 +115,7 @@ public class StaffDashboardController {
             Authentication authentication) {
         try {
             String email = authentication.getName();
-            staffTicketService.addResolution(id, resolution, email);
+            ticketApi.addResolution(id, resolution, email);
             return ResponseEntity.ok("Resolution added successfully");
         } catch (Exception e) {
             return ResponseEntity.status(400).body("Error: " + e.getMessage());
@@ -127,8 +127,8 @@ public class StaffDashboardController {
      */
     private String getTeamFromRole(StaffRole role) {
         return switch (role) {
-            case IT1 -> "T1";
-            case IT2 -> "T2";
+            case IT1 -> "IT1";
+            case IT2 -> "IT2";
             case FINANCE -> "FINANCE";
             case SUPPORT -> "SUPPORT";
             default -> null; // ADMIN doesn't have specific team

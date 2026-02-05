@@ -1,13 +1,8 @@
-package com.example.albanet.client.controller;
+package com.example.albanet.user.controller;
 
+import com.example.albanet.ticket.api.TicketApi;
 import com.example.albanet.ticket.api.dto.CreateClientTicketRequest;
-import com.example.albanet.ticket.internal.ClientTicketService;
-import com.example.albanet.ticket.internal.TicketEntity;
-import com.example.albanet.ticket.internal.TicketRepository;
-import com.example.albanet.ticket.internal.TicketMapper;
 import com.example.albanet.ticket.api.dto.TicketDetailsResponse;
-import com.example.albanet.ticket.internal.enums.TicketProblemType;
-import com.example.albanet.user.internal.UserEntity;
 import com.example.albanet.user.security.CustomUserDetails;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -16,25 +11,21 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
+/**
+ * Controller for user ticket operations.
+ * Consolidates the former "client" module ticket functionality.
+ */
 @Controller
-public class ClientTicketController {
+public class UserTicketController {
 
-    private final ClientTicketService clientTicketService;
-    private final TicketRepository ticketRepository;
-    private final TicketMapper ticketMapper;
+    private final TicketApi ticketApi;
 
-    public ClientTicketController(ClientTicketService clientTicketService,
-                                  TicketRepository ticketRepository,
-                                  TicketMapper ticketMapper) {
-        this.clientTicketService = clientTicketService;
-        this.ticketRepository = ticketRepository;
-        this.ticketMapper = ticketMapper;
+    public UserTicketController(TicketApi ticketApi) {
+        this.ticketApi = ticketApi;
     }
 
     /**
@@ -47,20 +38,14 @@ public class ClientTicketController {
         }
 
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        UserEntity user = userDetails.getUser();
 
-        List<TicketEntity> customerTickets = ticketRepository.findByCustomerIdOrderByCreatedAtDesc(user.getId());
-
-        List<TicketDetailsResponse> tickets = customerTickets.stream()
-                .map(ticketMapper::toDetailsResponse)
-                .collect(Collectors.toList());
-
+        List<TicketDetailsResponse> tickets = ticketApi.getTicketsByCustomerId(userDetails.getUserId());
         model.addAttribute("tickets", tickets);
 
         // Add user data for navigation fragment
-        model.addAttribute("userName", user.getFirstName() + " " + user.getLastName());
-        model.addAttribute("userEmail", user.getEmail());
-        model.addAttribute("userId", user.getId());
+        model.addAttribute("userName", userDetails.getFullName());
+        model.addAttribute("userEmail", userDetails.getEmail());
+        model.addAttribute("userId", userDetails.getUserId());
 
         return "client/my-tickets";
     }
@@ -73,10 +58,9 @@ public class ClientTicketController {
         // Add user data for navigation fragment
         if (authentication != null && authentication.isAuthenticated()) {
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-            UserEntity user = userDetails.getUser();
-            model.addAttribute("userName", user.getFirstName() + " " + user.getLastName());
-            model.addAttribute("userEmail", user.getEmail());
-            model.addAttribute("userId", user.getId());
+            model.addAttribute("userName", userDetails.getFullName());
+            model.addAttribute("userEmail", userDetails.getEmail());
+            model.addAttribute("userId", userDetails.getUserId());
         } else {
             // Add default values to prevent null errors in fragments
             model.addAttribute("userName", "Guest");
@@ -92,17 +76,7 @@ public class ClientTicketController {
     @ResponseBody
     public ResponseEntity<List<Map<String, String>>> getProblemTypes(@RequestParam String category) {
         try {
-            TicketProblemType[] problemTypes = clientTicketService.getProblemTypesByCategory(category);
-
-            List<Map<String, String>> response = Arrays.stream(problemTypes)
-                    .map(pt -> {
-                        Map<String, String> map = new HashMap<>();
-                        map.put("value", pt.name());
-                        map.put("label", pt.getDisplayName());
-                        return map;
-                    })
-                    .collect(Collectors.toList());
-
+            List<Map<String, String>> response = ticketApi.getProblemTypesByCategory(category);
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
@@ -124,16 +98,15 @@ public class ClientTicketController {
 
         try {
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-            UserEntity user = userDetails.getUser();
 
-            TicketEntity ticket = clientTicketService.createTicket(request, user.getId());
+            TicketDetailsResponse ticket = ticketApi.createTicket(request, userDetails.getUserId());
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "Ticket created successfully! Our team will review it shortly.");
             response.put("ticketId", ticket.getId());
             response.put("assignedTeam", ticket.getAssignedTeam());
-            response.put("priority", ticket.getPriority().name());
+            response.put("priority", ticket.getPriority());
 
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
